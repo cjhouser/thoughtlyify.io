@@ -9,13 +9,17 @@ import (
 const ExitConfigError = 1
 
 func loadParameters(parameters map[string]string) error {
-	for expected, fallback := range parameters {
-		value := os.Getenv(expected)
-		if value != "" {
+	for expected := range parameters {
+		value, isSet := os.LookupEnv(expected)
+		if isSet {
+			if value == "" {
+				return fmt.Errorf("empty parameter: %s", expected)
+			}
 			parameters[expected] = value
-		}
-		if fallback == "" {
-			return fmt.Errorf("undefined parameter: %s", expected)
+		} else {
+			if parameters[expected] == "" {
+				return fmt.Errorf("undefined parameter: %s", expected)
+			}
 		}
 	}
 	return nil
