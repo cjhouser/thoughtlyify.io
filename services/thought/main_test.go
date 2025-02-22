@@ -17,7 +17,7 @@ func TestValidateLogLevel(t *testing.T) {
 	}{
 		{
 			name:    "success",
-			input:   "info",
+			input:   "INFO",
 			want:    slog.LevelInfo,
 			wantErr: nil,
 		},
