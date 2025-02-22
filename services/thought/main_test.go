@@ -56,7 +56,7 @@ func TestValidateLogLevel(t *testing.T) {
 	}
 }
 
-func TestLoadParameters(t *testing.T) {
+func TestLoadParameter(t *testing.T) {
 	if err := os.Setenv("TEST_SET", "one"); err != nil {
 		t.Error("failed to set environment variable: TEST_SET")
 	}
