@@ -22,13 +22,13 @@ func loadParameter(parameter string) (string, error) {
 func validateLogLevel(logLevel string) (slog.Level, error) {
 	// Validate and set log level
 	switch logLevel {
-	case "error":
+	case slog.LevelError.String():
 		return slog.LevelError, nil
-	case "info":
+	case slog.LevelInfo.String():
 		return slog.LevelInfo, nil
-	case "debug":
+	case slog.LevelDebug.String():
 		return slog.LevelDebug, nil
-	case "warn":
+	case slog.LevelWarn.String():
 		return slog.LevelWarn, nil
 	default:
 		return slog.LevelInfo, fmt.Errorf("unexpected log level: %s", logLevel)
