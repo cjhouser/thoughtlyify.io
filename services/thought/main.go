@@ -33,7 +33,7 @@ func validateLogLevel(logLevel string) (slog.Level, error) {
 	case "warn":
 		return slog.LevelWarn, nil
 	default:
-		return slog.LevelInfo, fmt.Errorf("log level must be one of info, warn, error, debug. got: %s", logLevel)
+		return slog.LevelInfo, fmt.Errorf("unexpected log level: %s", logLevel)
 	}
 }
 
