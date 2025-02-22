@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 )
 
@@ -20,16 +21,45 @@ func loadParameters(parameters map[string]string) error {
 	return nil
 }
 
+func validateLogLevel(logLevel string) (slog.Level, error) {
+	// Validate and set log level
+	switch logLevel {
+	case "error":
+		return slog.LevelError, nil
+	case "info":
+		return slog.LevelInfo, nil
+	case "debug":
+		return slog.LevelDebug, nil
+	case "warn":
+		return slog.LevelWarn, nil
+	default:
+		return slog.LevelInfo, fmt.Errorf("log level must be one of info, warn, error, debug. got: %s", logLevel)
+	}
+}
+
 func main() {
+	logOptions := &slog.HandlerOptions{
+		Level: slog.LevelError,
+	}
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, logOptions)))
+
 	// Define parameters and default values
 	parameters := map[string]string{
 		"HOST":      "",
 		"PORT":      "",
-		"LOG_LEVEL": "ERROR",
+		"LOG_LEVEL": "error",
 	}
 
 	// Load parameters from environment variables and use default value defined
 	if err := loadParameters(parameters); err != nil {
+		slog.Error(err.Error())
 		os.Exit(ExitConfigError)
 	}
+
+	logLevel, err := validateLogLevel(parameters["LOG_LEVEL"])
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(ExitConfigError)
+	}
+	logOptions.Level = logLevel
 }
