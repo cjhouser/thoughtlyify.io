@@ -57,10 +57,12 @@ func validatePort(port string) (int, error) {
 }
 
 func main() {
-	logOptions := &slog.HandlerOptions{
-		Level: slog.LevelError,
-	}
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, logOptions)))
+	level := new(slog.LevelVar)
+	level.Set(slog.LevelInfo)
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	})))
+	slog.Info(fmt.Sprintf("log level set: %s", level.Level().String()))
 
 	// Define parameters and default values
 	parameters := map[string]string{
@@ -97,7 +99,7 @@ func main() {
 		os.Exit(ExitConfigError)
 	}
 
-	logOptions.Level = logLevel
-	slog.Info(fmt.Sprintf("log level set to: %s", logLevel.String()))
 	slog.Info(fmt.Sprintf("listening on %s:%d", address.String(), port))
+	slog.Info(fmt.Sprintf("log level set: %s", logLevel.String()))
+	level.Set(logLevel)
 }
