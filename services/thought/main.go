@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net"
 	"os"
+	"strconv"
 )
 
 const ExitConfigError = 1
@@ -35,6 +37,25 @@ func validateLogLevel(logLevel string) (slog.Level, error) {
 	}
 }
 
+func validateIPv6Address(address string) (net.IP, error) {
+	ip := net.ParseIP(address)
+	if ip == nil || ip.To4() != nil {
+		return nil, fmt.Errorf("invalid ipv6 address")
+	}
+	return ip, nil
+}
+
+func validatePort(port string) (int, error) {
+	portNumber, err := strconv.Atoi(port)
+	if err != nil {
+		return -1, fmt.Errorf("invalid port")
+	}
+	if portNumber < 0 || portNumber > 65535 {
+		return -1, fmt.Errorf("invalid port")
+	}
+	return portNumber, nil
+}
+
 func main() {
 	logOptions := &slog.HandlerOptions{
 		Level: slog.LevelError,
@@ -43,7 +64,7 @@ func main() {
 
 	// Define parameters and default values
 	parameters := map[string]string{
-		"HOST":      "",
+		"ADDRESS":   "",
 		"PORT":      "",
 		"LOG_LEVEL": "",
 	}
@@ -63,5 +84,20 @@ func main() {
 		slog.Error(err.Error())
 		os.Exit(ExitConfigError)
 	}
+
+	address, err := validateIPv6Address(parameters["ADDRESS"])
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(ExitConfigError)
+	}
+
+	port, err := validatePort(parameters["PORT"])
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(ExitConfigError)
+	}
+
 	logOptions.Level = logLevel
+	slog.Info(fmt.Sprintf("log level set to: %s", logLevel.String()))
+	slog.Info(fmt.Sprintf("listening on %s:%d", address.String(), port))
 }
