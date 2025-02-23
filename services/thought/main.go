@@ -80,7 +80,7 @@ func main() {
 			}
 			if a.Key == slog.TimeKey {
 				t := a.Value.Time()
-				a.Value = slog.StringValue(t.Format("2006-01-02T15:04:05.000"))
+				a.Value = slog.StringValue(t.Format("2006-01-02T15:04:05.00000"))
 				return a
 			}
 			return a
