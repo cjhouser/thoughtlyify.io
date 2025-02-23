@@ -61,6 +61,30 @@ func main() {
 	level.Set(slog.LevelInfo)
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: level,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.LevelKey {
+				switch a.Value.String() {
+				case "DEBUG":
+					a.Value = slog.StringValue("D")
+				case "INFO":
+					a.Value = slog.StringValue("I")
+				case "WARN":
+					a.Value = slog.StringValue("W")
+				case "ERROR":
+					a.Value = slog.StringValue("E")
+				default:
+					// Unknown level
+					a.Value = slog.StringValue("U")
+				}
+				return a
+			}
+			if a.Key == slog.TimeKey {
+				t := a.Value.Time()
+				a.Value = slog.StringValue(t.Format("2006-01-02T15:04:05.000"))
+				return a
+			}
+			return a
+		},
 	})))
 	slog.Info(fmt.Sprintf("log level set: %s", level.Level().String()))
 
