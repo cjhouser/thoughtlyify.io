@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 )
-
-const ExitConfigError = 1
 
 func loadParameter(parameter string) (string, error) {
 	value, isSet := os.LookupEnv(parameter)
@@ -86,7 +85,6 @@ func main() {
 			return a
 		},
 	})))
-	slog.Info(fmt.Sprintf("log level set: %s", level.Level().String()))
 
 	// Define parameters and default values
 	parameters := map[string]string{
@@ -100,7 +98,7 @@ func main() {
 		value, err := loadParameter(parameter)
 		if err != nil {
 			slog.Error(err.Error())
-			os.Exit(ExitConfigError)
+			os.Exit(166)
 		}
 		parameters[parameter] = value
 	}
@@ -108,22 +106,34 @@ func main() {
 	logLevel, err := validateLogLevel(parameters["LOG_LEVEL"])
 	if err != nil {
 		slog.Error(err.Error())
-		os.Exit(ExitConfigError)
+		os.Exit(166)
 	}
 
 	address, err := validateIPv6Address(parameters["ADDRESS"])
 	if err != nil {
 		slog.Error(err.Error())
-		os.Exit(ExitConfigError)
+		os.Exit(166)
 	}
 
 	port, err := validatePort(parameters["PORT"])
 	if err != nil {
 		slog.Error(err.Error())
-		os.Exit(ExitConfigError)
+		os.Exit(166)
 	}
 
-	slog.Info(fmt.Sprintf("listening on %s:%d", address.String(), port))
 	slog.Info(fmt.Sprintf("log level set: %s", logLevel.String()))
 	level.Set(logLevel)
+
+	listener, err := net.Listen("tcp6", fmt.Sprintf("[%s]:%d", address.String(), port))
+	if err != nil {
+		slog.Error(fmt.Sprintf("%v", err))
+		os.Exit(166)
+	}
+	defer listener.Close()
+	slog.Info(fmt.Sprintf("listening on %s:%d", address.String(), port))
+
+	if err = http.Serve(listener, nil); err != nil {
+		slog.Error(fmt.Sprintf("%v", err))
+		os.Exit(166)
+	}
 }
