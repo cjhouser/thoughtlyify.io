@@ -1,0 +1,26 @@
+networks:
+  development-network:
+    name: devnet
+    external: true
+services:
+  api:
+    build: .
+    ports:
+    - 8081:8081
+    environment:
+      LOG_LEVEL: INFO
+      PORT: 8081
+      ADDRESS: ::0
+    networks:
+    - development-network
+  db:
+    image: postgres:17.4-bookworm
+    ports:
+    - 5432:5432
+    environment:
+      POSTGRES_DB: thought
+      POSTGRES_PASSWORD: thought_pass
+      POSTGRES_USER: thought_user
+      PGDATA: /database
+    networks:
+    - development-network

@@ -69,19 +69,19 @@ func TestValidateIPv6Address(t *testing.T) {
 			name:    "hostname is invalid",
 			input:   "doesnotexist.thoughtlyify.io",
 			want:    nil,
-			wantErr: errors.New("invalid ipv6 address"),
+			wantErr: errors.New("invalid ipv6 address: doesnotexist.thoughtlyify.io"),
 		},
 		{
 			name:    "invalid address",
-			input:   "this is not a hostname",
+			input:   "this isnt a hostname",
 			want:    nil,
-			wantErr: errors.New("invalid ipv6 address"),
+			wantErr: errors.New("invalid ipv6 address: this isnt a hostname"),
 		},
 		{
 			name:    "empty address is invalid",
 			input:   "",
 			want:    nil,
-			wantErr: errors.New("invalid ipv6 address"),
+			wantErr: errors.New("invalid ipv6 address: "),
 		},
 		{
 			name:    "valid address",
@@ -93,7 +93,7 @@ func TestValidateIPv6Address(t *testing.T) {
 			name:    "ipv4 address is invalid",
 			input:   "0.0.0.0",
 			want:    nil,
-			wantErr: errors.New("invalid ipv6 address"),
+			wantErr: errors.New("invalid ipv6 address: 0.0.0.0"),
 		},
 	}
 	for _, test := range tests {
@@ -133,15 +133,15 @@ func TestValidatePort(t *testing.T) {
 		},
 		{
 			name:    "invalid port",
-			input:   "invalid port",
+			input:   "this isnt a port",
 			want:    -1,
-			wantErr: errors.New("invalid port"),
+			wantErr: errors.New("invalid port: this isnt a port"),
 		},
 		{
 			name:    "empty port",
 			input:   "",
 			want:    -1,
-			wantErr: errors.New("invalid port"),
+			wantErr: errors.New("invalid port: "),
 		},
 	}
 	for _, test := range tests {
