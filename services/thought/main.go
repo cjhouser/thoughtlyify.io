@@ -1,13 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/go-sql-driver/mysql"
 )
+
+var pool *sql.DB
 
 func loadParameter(parameter string) (string, error) {
 	value, isSet := os.LookupEnv(parameter)
@@ -39,25 +44,21 @@ func validateLogLevel(logLevel string) (slog.Level, error) {
 func validateIPv6Address(address string) (net.IP, error) {
 	ip := net.ParseIP(address)
 	if ip == nil || ip.To4() != nil {
-		return nil, fmt.Errorf("invalid ipv6 address")
+		return nil, fmt.Errorf("invalid ipv6 address: %s", address)
 	}
 	return ip, nil
 }
 
 func validatePort(port string) (int, error) {
 	portNumber, err := strconv.Atoi(port)
-	if err != nil {
-		return -1, fmt.Errorf("invalid port")
-	}
-	if portNumber < 0 || portNumber > 65535 {
-		return -1, fmt.Errorf("invalid port")
+	if err != nil || (portNumber < 0 || portNumber > 65535) {
+		return -1, fmt.Errorf("invalid port: %s", port)
 	}
 	return portNumber, nil
 }
 
-func main() {
+func run() (err error) {
 	level := new(slog.LevelVar)
-	level.Set(slog.LevelInfo)
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
@@ -97,43 +98,61 @@ func main() {
 	for parameter := range parameters {
 		value, err := loadParameter(parameter)
 		if err != nil {
-			slog.Error(err.Error())
-			os.Exit(166)
+			return err
 		}
 		parameters[parameter] = value
 	}
 
+	// Validate parameters
 	logLevel, err := validateLogLevel(parameters["LOG_LEVEL"])
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(166)
+		return err
 	}
 
 	address, err := validateIPv6Address(parameters["ADDRESS"])
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(166)
+		return err
 	}
 
 	port, err := validatePort(parameters["PORT"])
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(166)
+		return err
 	}
 
-	slog.Info(fmt.Sprintf("log level set: %s", logLevel.String()))
+	// Set up configuration
 	level.Set(logLevel)
-
-	listener, err := net.Listen("tcp6", fmt.Sprintf("[%s]:%d", address.String(), port))
-	if err != nil {
-		slog.Error(fmt.Sprintf("%v", err))
-		os.Exit(166)
+	dbConfig := mysql.Config{
+		User:   "thought",
+		Passwd: "password",
+		Net:    "tcp",
+		Addr:   "127.0.0.1:3306",
+		DBName: "thought",
 	}
-	defer listener.Close()
-	slog.Info(fmt.Sprintf("listening on %s:%d", address.String(), port))
+	socket := fmt.Sprintf("[%s]:%d", address.String(), port)
+	server := &http.Server{
+		Addr:    socket,
+		Handler: nil,
+	}
 
-	if err = http.Serve(listener, nil); err != nil {
-		slog.Error(fmt.Sprintf("%v", err))
+	// Connect to the database
+	pool, err = sql.Open("mysql", dbConfig.FormatDSN())
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	// Endpoints
+	http.HandleFunc("/thoughts", getThoughts)
+
+	// Do the server thing
+	slog.Info(fmt.Sprintf("listening on %s", socket))
+	err = server.ListenAndServe()
+	return err
+}
+
+func main() {
+	if err := run(); err != nil {
+		slog.Error(err.Error())
 		os.Exit(166)
 	}
 }
