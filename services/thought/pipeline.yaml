@@ -1,0 +1,24 @@
+resources:
+- name: repository
+  type: git
+  source:
+    uri: https://github.com/cjhouser/thoughtlyify.io.git
+    paths:
+    - services/thought/*
+jobs:
+- name: hello-world-job
+  plan:
+  - get: repository
+    trigger: true
+  - task: hello-world-task
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: busybox
+      inputs:
+      - name: repository
+      run:
+        path: cat
+        args: ["repository/Dockerfile"]
