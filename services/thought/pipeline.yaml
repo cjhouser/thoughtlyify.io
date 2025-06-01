@@ -21,4 +21,4 @@ jobs:
       - name: repository
       run:
         path: cat
-        args: ["repository/Dockerfile"]
+        args: ["repository/services/thought/Dockerfile"]

@@ -1,2 +1,2 @@
 FROM python:latest
-CMD ["python", "-c", "hello"]
+CMD ["python", "-c", "goodbye"]
