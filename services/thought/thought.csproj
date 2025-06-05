@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RuntimeIdentifiers>win-x64;osx-x64;linux-x64;linux-arm64</RuntimeIdentifiers>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+</Project>
