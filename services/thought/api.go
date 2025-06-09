@@ -1,17 +1,23 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 )
 
 func getThoughts(w http.ResponseWriter, r *http.Request) {
-	rows, err := pool.Query("SELECT * from thought")
+	conn, err := db.Acquire(context.Background())
+	if err != nil {
+		slog.Error(err.Error())
+		r.Response.StatusCode = http.StatusInternalServerError
+	}
+	defer conn.Release()
+	rows, err := conn.Query(context.Background(), "SELECT * FROM thought")
 	if err != nil {
 		slog.Error(err.Error())
 		r.Response.StatusCode = http.StatusInternalServerError
 	}
 	defer rows.Close()
-	rows.NextResultSet()
 	r.Response.StatusCode = http.StatusOK
 }

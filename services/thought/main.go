@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log/slog"
 	"net"
@@ -9,10 +9,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var pool *sql.DB
+var db *pgxpool.Pool
 
 func loadParameter(parameter string) (string, error) {
 	value, isSet := os.LookupEnv(parameter)
@@ -89,9 +89,13 @@ func run() (err error) {
 
 	// Define parameters and default values
 	parameters := map[string]string{
-		"ADDRESS":   "",
-		"PORT":      "",
-		"LOG_LEVEL": "",
+		"ADDRESS":           "",
+		"PORT":              "",
+		"LOG_LEVEL":         "",
+		"POSTGRES_URL":      "",
+		"POSTGRES_DATABASE": "",
+		"POSTGRES_USER":     "",
+		"POSTGRES_PASSWORD": "",
 	}
 
 	// Load parameters from environment variables and use default value defined
@@ -121,13 +125,6 @@ func run() (err error) {
 
 	// Set up configuration
 	level.Set(logLevel)
-	dbConfig := mysql.Config{
-		User:   "thought",
-		Passwd: "password",
-		Net:    "tcp",
-		Addr:   "127.0.0.1:3306",
-		DBName: "thought",
-	}
 	socket := fmt.Sprintf("[%s]:%d", address.String(), port)
 	server := &http.Server{
 		Addr:    socket,
@@ -135,11 +132,17 @@ func run() (err error) {
 	}
 
 	// Connect to the database
-	pool, err = sql.Open("mysql", dbConfig.FormatDSN())
+	dsn := fmt.Sprintf(
+		"user=%s password=%s host=%s port=5432 dbname=%s",
+		parameters["POSTGRES_USER"],
+		parameters["POSTGRES_PASSWORD"],
+		parameters["POSTGRES_URL"],
+		parameters["POSTGRES_DATABASE"],
+	)
+	db, err = pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		return err
 	}
-	defer pool.Close()
 
 	// Endpoints
 	http.HandleFunc("/thoughts", getThoughts)

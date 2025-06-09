@@ -11,6 +11,10 @@ services:
       LOG_LEVEL: INFO
       PORT: 8081
       ADDRESS: ::0
+      POSTGRES_URL: thought-db-1
+      POSTGRES_PASSWORD: thought-pass
+      POSTGRES_USER: thought-user
+      POSTGRES_DATABASE: thought
     networks:
     - development-network
   db:
@@ -19,8 +23,8 @@ services:
     - 5432:5432
     environment:
       POSTGRES_DB: thought
-      POSTGRES_PASSWORD: thought_pass
-      POSTGRES_USER: thought_user
+      POSTGRES_PASSWORD: thought-pass
+      POSTGRES_USER: thought-user
       PGDATA: /database
     networks:
     - development-network
