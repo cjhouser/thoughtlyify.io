@@ -12,3 +12,6 @@ not all users are expected to share their thoughts.
 * Recent thoughts get largest traffic
 * Thoughts are received one at a time
 * Thoughts are sent in batches
+
+## Migrations
+`docker run -v ./migrations:/migrations migrate/migrate:4 create -dir /migrations/ -ext sql -tz UTC {name}`

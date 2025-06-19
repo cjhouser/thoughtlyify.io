@@ -95,6 +95,7 @@ func run() (err error) {
 		"POSTGRES_URL":      "",
 		"POSTGRES_DATABASE": "",
 		"POSTGRES_USER":     "",
+		"POSTGRES_PORT":     "",
 		"POSTGRES_PASSWORD": "",
 	}
 
@@ -133,10 +134,11 @@ func run() (err error) {
 
 	// Connect to the database
 	dsn := fmt.Sprintf(
-		"user=%s password=%s host=%s port=5432 dbname=%s",
+		"postgresql://%s:%s@%s:%s/%s",
 		parameters["POSTGRES_USER"],
 		parameters["POSTGRES_PASSWORD"],
 		parameters["POSTGRES_URL"],
+		parameters["POSTGRES_PORT"],
 		parameters["POSTGRES_DATABASE"],
 	)
 	db, err = pgxpool.New(context.Background(), dsn)
@@ -145,7 +147,7 @@ func run() (err error) {
 	}
 
 	// Endpoints
-	http.HandleFunc("/thoughts", getThoughts)
+	http.HandleFunc("/thoughts", handleThoughts)
 
 	// Do the server thing
 	slog.Info(fmt.Sprintf("listening on %s", socket))

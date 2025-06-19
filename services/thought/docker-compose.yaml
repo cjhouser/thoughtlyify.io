@@ -2,6 +2,8 @@ networks:
   development-network:
     name: devnet
     external: true
+volumes:
+  db:
 services:
   api:
     build: .
@@ -28,3 +30,5 @@ services:
       PGDATA: /database
     networks:
     - development-network
+    volumes:
+    - ./database/data:/database

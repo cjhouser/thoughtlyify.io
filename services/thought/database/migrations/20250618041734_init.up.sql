@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS messages(
+   id VARCHAR (32) PRIMARY KEY,
+   content VARCHAR (256) NOT NULL
+);
