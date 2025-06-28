@@ -13,3 +13,12 @@ Resources are managed via Terraform
 * outputs.tf - outputs
 * *.tf - project specific defintions
 * modules/ - modules
+
+## Block Standards
+* Non-collection attributes are defined before any collection attributes
+* Non-collection attributes alphabetized as a group
+* Collection attributes alphabetized as a group
+
+## FAQ
+* Why not alphabetize all attributes as a whole?
+    * `tf fmt` will not add the appropriate whitespace to attributes that are defined below a collection attribute
