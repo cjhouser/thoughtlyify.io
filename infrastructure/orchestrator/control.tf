@@ -67,3 +67,23 @@ resource "aws_eks_cluster" "platform" {
     enabled = false
   }
 }
+
+resource "aws_eks_access_entry" "chouser" {
+  cluster_name  = aws_eks_cluster.platform.name
+  principal_arn = data.aws_iam_user.chouser.arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "cluster_admins" {
+  cluster_name  = aws_eks_cluster.platform.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = data.aws_iam_user.chouser.arn
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [
+    aws_eks_access_entry.chouser
+  ]
+}
