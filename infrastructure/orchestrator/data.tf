@@ -12,3 +12,7 @@ data "aws_iam_policy_document" "authn_eks_cluster" {
     }
   }
 }
+
+data "aws_iam_user" "chouser" {
+  user_name = "charles.houser"
+}
