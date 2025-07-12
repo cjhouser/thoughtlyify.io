@@ -38,8 +38,41 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_route_table" "private" {
+resource "aws_route_table" "nodes_a" {
   vpc_id = aws_vpc.platform.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.north_south_a.id
+  }
+
+  route {
+    ipv6_cidr_block        = "::/0"
+    egress_only_gateway_id = aws_egress_only_internet_gateway.eigw.id
+  }
+}
+
+resource "aws_route_table" "nodes_b" {
+  vpc_id = aws_vpc.platform.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.north_south_b.id
+  }
+
+  route {
+    ipv6_cidr_block        = "::/0"
+    egress_only_gateway_id = aws_egress_only_internet_gateway.eigw.id
+  }
+}
+
+resource "aws_route_table" "nodes_c" {
+  vpc_id = aws_vpc.platform.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.north_south_c.id
+  }
 
   route {
     ipv6_cidr_block        = "::/0"
@@ -87,4 +120,19 @@ resource "aws_subnet" "north_south_c" {
   tags = {
     Name = "north_south_c"
   }
+}
+
+resource "aws_route_table_association" "north_south_a" {
+  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.north_south_a.id
+}
+
+resource "aws_route_table_association" "north_south_b" {
+  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.north_south_b.id
+}
+
+resource "aws_route_table_association" "north_south_c" {
+  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.north_south_c.id
 }
