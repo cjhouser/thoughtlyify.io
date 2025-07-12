@@ -54,9 +54,9 @@ resource "aws_eks_cluster" "platform" {
     support_type = "STANDARD"
   }
   vpc_config {
+    endpoint_private_access = true
     public_access_cidrs = [
-      "::/0",
-      "0.0.0.0/0"
+      "73.93.82.208/32"
     ]
     subnet_ids = [
       aws_subnet.control_a.id,
