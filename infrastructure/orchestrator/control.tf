@@ -21,3 +21,13 @@ resource "aws_subnet" "control_b" {
     Name = "control-b"
   }
 }
+
+resource "aws_route_table_association" "control_a" {
+  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.control_a.id
+}
+
+resource "aws_route_table_association" "control_b" {
+  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.control_b.id
+}
