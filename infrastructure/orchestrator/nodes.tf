@@ -38,16 +38,16 @@ resource "aws_subnet" "nodes_c" {
 }
 
 resource "aws_route_table_association" "nodes_a" {
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.nodes_a.id
   subnet_id      = aws_subnet.nodes_a.id
 }
 
 resource "aws_route_table_association" "nodes_b" {
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.nodes_b.id
   subnet_id      = aws_subnet.nodes_b.id
 }
 
 resource "aws_route_table_association" "nodes_c" {
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.nodes_c.id
   subnet_id      = aws_subnet.nodes_c.id
 }
