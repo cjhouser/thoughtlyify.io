@@ -87,3 +87,21 @@ resource "aws_eks_access_policy_association" "cluster_admins" {
     aws_eks_access_entry.chouser
   ]
 }
+
+resource "aws_eks_addon" "cni" {
+  addon_name    = "vpc-cni"
+  addon_version = "v1.19.6-eksbuild.1"
+  cluster_name  = aws_eks_cluster.platform.name
+}
+
+resource "aws_eks_addon" "proxy" {
+  addon_name    = "kube-proxy"
+  addon_version = "v1.33.0-eksbuild.2"
+  cluster_name  = aws_eks_cluster.platform.name
+}
+
+resource "aws_eks_addon" "coredns" {
+  addon_name    = "coredns"
+  addon_version = "v1.12.1-eksbuild.2"
+  cluster_name  = aws_eks_cluster.platform.name
+}
