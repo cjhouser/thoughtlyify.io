@@ -1,8 +1,0 @@
-version: 3
-automerge: true
-projects:
-- name: atlantis
-  branch: /^main$/
-  dir: infrastructure/atlantis
-  workspace: default
-  execution_order_group: 0
