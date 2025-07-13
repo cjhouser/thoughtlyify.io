@@ -136,3 +136,42 @@ resource "aws_route_table_association" "north_south_c" {
   route_table_id = aws_route_table.public.id
   subnet_id      = aws_subnet.north_south_c.id
 }
+
+resource "aws_eip" "north_south_a" {
+  domain = "vpc"
+
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
+}
+
+resource "aws_eip" "north_south_b" {
+  domain = "vpc"
+
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
+}
+
+resource "aws_eip" "north_south_c" {
+  domain = "vpc"
+
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
+}
+
+resource "aws_nat_gateway" "north_south_a" {
+  allocation_id = aws_eip.north_south_a.allocation_id
+  subnet_id     = aws_subnet.north_south_a.id
+}
+
+resource "aws_nat_gateway" "north_south_b" {
+  allocation_id = aws_eip.north_south_c.allocation_id
+  subnet_id     = aws_subnet.north_south_b.id
+}
+
+resource "aws_nat_gateway" "north_south_c" {
+  allocation_id = aws_eip.north_south_b.allocation_id
+  subnet_id     = aws_subnet.north_south_c.id
+}
