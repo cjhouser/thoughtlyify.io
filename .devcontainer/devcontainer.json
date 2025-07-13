@@ -1,0 +1,42 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
+{
+	"name": "devenv",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	"mounts": [
+        "type=bind,source=/Users/${localEnv:USER}/.ssh,target=/home/vscode/.ssh",
+        "type=bind,source=/Users/${localEnv:USER}/.kube,target=/home/vscode/.kube",
+        "type=bind,source=/Users/${localEnv:USER}/.aws,target=/home/vscode/.aws",
+        "type=bind,source=/Users/${localEnv:USER}/.git,target=/home/vscode/.git"
+	],
+	"runArgs": [
+		"--network=devnet"
+	],
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "echo 'alias gitr=\"git rebase -i --autosquash main\"' >> ~/.bashrc && echo 'alias k=kubectl' >> ~/.bashrc && echo \"source <(kubectl completion bash)\" >> ~/.bashrc && echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc",
+
+	// Configure tool-specific properties.
+	"customizations": {
+    "vscode": {
+        "extensions":[
+			"4ops.terraform",
+			"golang.go",
+			"ms-azuretools.vscode-docker",
+			"vmware.vscode-concourse"
+		]
+    }
+}
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
