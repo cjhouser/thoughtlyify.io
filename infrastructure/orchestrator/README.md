@@ -1,0 +1,27 @@
+# VPC and Subnets
+- Two subnets in different availability zones. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html
+- The VPC must have a sufficient number of IP addresses for the following. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-vpc
+    - The cluster
+    - Nodes
+    - Other kubernetes resources (what resources?)
+    - (what is the required number of IP addresses?)
+    - (are these IPv4 or IPv6 addresses?)
+- Cluster upgrades may require additional IP addresses in the future. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-vpc
+- Additional subnets added to the cluster later must be in the same VPC and availability zones listed during cluster creation. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-vpc
+- At least one subnet must exist in each availability zone listed during cluster creation. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-vpc
+- Assign an IPv6 CIDR block to a VPC to use IPv6 for Pods and Services
+- Nodes need DNS hostname and DNS resolution support to be able to register with the cluster
+- EC2 instances with a public IPv4 addresses are assigned public DNS hostname if VPC DNS attributes are enabled. https://docs.aws.amazon.com/vpc/latest/userguide/AmazonDNS-concepts.html#AmazonDNS
+    - (does this mean that EC2 instances in IPv6-only subnets are not given public DNS hostnames?)
+- Up to 4 Elastic Network interfaces are created in the subnets you provide when a cluster is created. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-subnets
+    - (do ENIs use IPv4 addresses? can they use IPv6 addresses?)
+- Each ENI can potentially have many IPv4 addresses. https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
+    - Network interfaces can use a bunch of IP addresses, depending on instance type. https://docs.aws.amazon.com/ec2/latest/instancetypes/gp.html#gp_network
+- These instance types do not support IPv6 adressing: C1, M1, M2, M3, and T1. https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AvailableIpPerENI.html
+- "When you update the Kubernetes version of a cluster, Amazon EKS deletes the original network interfaces that it created, and creates new network interfaces. These network interfaces might be created in the same subnets as the original network interfaces or in different subnets than the original network interfaces." https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-subnets
+    - (don't rely on the location of network interfaces as they are subject to change through upgrades)
+- Subnets that the cluster uses require at least six IP addresses. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-subnets
+    - (are these IPv4 address or IPv6 addresses?)
+- It looks like EKS requires IPv4 addresses based on the "IP address family usage by component" table. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-subnets
+    - "EKS API VPC endpoint" does not support dual stack or IPv6 addresses
+    - 
