@@ -38,17 +38,17 @@ resource "aws_subnet" "nodes_c" {
 }
 
 resource "aws_route_table_association" "nodes_a" {
-  route_table_id = aws_route_table.nodes_a.id
+  route_table_id = aws_route_table.private.id
   subnet_id      = aws_subnet.nodes_a.id
 }
 
 resource "aws_route_table_association" "nodes_b" {
-  route_table_id = aws_route_table.nodes_b.id
+  route_table_id = aws_route_table.private.id
   subnet_id      = aws_subnet.nodes_b.id
 }
 
 resource "aws_route_table_association" "nodes_c" {
-  route_table_id = aws_route_table.nodes_c.id
+  route_table_id = aws_route_table.private.id
   subnet_id      = aws_subnet.nodes_c.id
 }
 
@@ -58,18 +58,9 @@ resource "aws_eks_node_group" "nodes_0" {
   cluster_name    = aws_eks_cluster.platform.name
   disk_size       = "20"
   node_group_name = "node_0"
-  node_role_arn   = aws_iam_role.eks_node.arn
+  node_role_arn   = data.aws_iam_role.eks_node.arn
   release_version = "1.33.0-20250704"
   version         = "1.33"
-
-  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
-  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
-  depends_on = [
-    aws_iam_role_policy_attachment.eks_worker_node,
-    aws_iam_role_policy_attachment.ipv6_cni,
-    aws_iam_role_policy_attachment.ec2_container_registry_read_only,
-    aws_iam_role_policy_attachment.ec2_container_registry_pull_only
-  ]
 
   instance_types = [
     "t4g.medium"

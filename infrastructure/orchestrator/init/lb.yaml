@@ -1,0 +1,12 @@
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: ingress-nginx-binding
+  namespace: ingress-nginx
+spec:
+  targetType: ip
+  ipAddressType: ipv6
+  serviceRef:
+    name: ingress-nginx-controller
+    port: 443
+  targetGroupARN: "arn:aws:elasticloadbalancing:us-west-2:014821610452:targetgroup/platform/8e356de7879733b2"

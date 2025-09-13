@@ -35,18 +35,12 @@ resource "aws_route_table_association" "control_b" {
 resource "aws_eks_cluster" "platform" {
   bootstrap_self_managed_addons = false
   name                          = "platform"
-  role_arn                      = aws_iam_role.eks_cluster_role.arn
+  role_arn                      = data.aws_iam_role.eks_cluster_role.arn
   version                       = "1.33"
 
   access_config {
     authentication_mode = "API"
   }
-  # Ensure that IAM Role permissions are created before and deleted
-  # after EKS Cluster handling. Otherwise, EKS will not be able to
-  # properly delete EKS managed EC2 infrastructure such as Security Groups.
-  depends_on = [
-    aws_iam_role_policy_attachment.amazon_eks_cluster_policy
-  ]
   kubernetes_network_config {
     ip_family = "ipv6"
   }
@@ -56,7 +50,8 @@ resource "aws_eks_cluster" "platform" {
   vpc_config {
     endpoint_private_access = true
     public_access_cidrs = [
-      "73.93.82.208/32"
+      "73.93.82.208/32",
+      "24.23.136.148/32",
     ]
     subnet_ids = [
       aws_subnet.control_a.id,
@@ -106,5 +101,126 @@ resource "aws_eks_addon" "coredns" {
   cluster_name  = aws_eks_cluster.platform.name
   depends_on = [
     aws_eks_node_group.nodes_0
+  ]
+}
+
+resource "aws_iam_openid_connect_provider" "platform" {
+  client_id_list = [
+    "sts.amazonaws.com",
+  ]
+  url = aws_eks_cluster.platform.identity[0].oidc[0].issuer
+}
+
+data "aws_iam_policy_document" "authn_AWSLoadBalancerController" {
+  statement {
+    actions = [
+      "sts:AssumeRoleWithWebIdentity",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "${local.short_oidc_arn}:aud"
+      values = [
+        "sts.amazonaws.com",
+      ]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${local.short_oidc_arn}:sub"
+      values = [
+        "system:serviceaccount:kube-system:aws-load-balancer-controller", # hardcoded because of cycle
+      ]
+    }
+    effect = "Allow"
+    principals {
+      type = "Federated"
+      identifiers = [
+        aws_iam_openid_connect_provider.platform.arn,
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "AWSLoadBalancerController" {
+  name               = "AWSLoadBalancerController"
+  assume_role_policy = data.aws_iam_policy_document.authn_AWSLoadBalancerController.json
+}
+
+data "aws_iam_policy" "AWSLoadBalancerController" {
+  name = "AWSLoadBalancerController"
+}
+
+resource "aws_iam_role_policy_attachment" "AWSLoadBalancerController" {
+  role       = aws_iam_role.AWSLoadBalancerController.name
+  policy_arn = data.aws_iam_policy.AWSLoadBalancerController.arn
+}
+
+resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controller" {
+  metadata {
+    annotations = merge(local.k8s_common_annotations, {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.AWSLoadBalancerController.arn
+    })
+    labels    = merge(local.k8s_common_labels, {})
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+  }
+
+  depends_on = [
+    aws_eks_access_policy_association.cluster_admins,
+  ]
+}
+
+resource "helm_release" "kube-system_aws-load-balancer-controller" {
+  name       = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  version    = "1.13.4"
+  set = [
+    {
+      name  = "regionCode"
+      value = data.aws_region.current.region
+    },
+    {
+      name  = "vpcId"
+      value = aws_vpc.platform.id
+    },
+    {
+      name  = "clusterName"
+      value = aws_eks_cluster.platform.name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = "false"
+    },
+    {
+      name  = "serviceAccount.name"
+      value = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
+    },
+    {
+      name  = "image.repository"
+      value = "ecr-public.aws.com/eks/aws-load-balancer-controller"
+    },
+    {
+      name  = "logLevel"
+      value = "error"
+    },
+    {
+      name  = "replicaCount"
+      value = 3
+    },
+    {
+      name  = "defaultTargetType"
+      value = "ip"
+    },
+    {
+      name  = "enableEndpointSlices"
+      value = true
+    }
+  ]
+  depends_on = [
+    aws_eks_access_policy_association.cluster_admins,
+    aws_eks_addon.cni,
+    aws_eks_addon.proxy,
+    aws_eks_addon.coredns,
   ]
 }

@@ -4,6 +4,8 @@ Local development environment packaged into a container.
 - Add checksum checks for all tools
 
 ## Changelog
+### 7.0
+- added helm 3.18
 ### 6.0
 - kubectl now uses kubectl instead of k
 ### 5.0
