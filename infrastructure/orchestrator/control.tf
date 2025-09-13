@@ -35,18 +35,12 @@ resource "aws_route_table_association" "control_b" {
 resource "aws_eks_cluster" "platform" {
   bootstrap_self_managed_addons = false
   name                          = "platform"
-  role_arn                      = aws_iam_role.eks_cluster_role.arn
+  role_arn                      = data.aws_iam_role.eks_cluster_role.arn
   version                       = "1.33"
 
   access_config {
     authentication_mode = "API"
   }
-  # Ensure that IAM Role permissions are created before and deleted
-  # after EKS Cluster handling. Otherwise, EKS will not be able to
-  # properly delete EKS managed EC2 infrastructure such as Security Groups.
-  depends_on = [
-    aws_iam_role_policy_attachment.amazon_eks_cluster_policy
-  ]
   kubernetes_network_config {
     ip_family = "ipv6"
   }
