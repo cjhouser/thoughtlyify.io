@@ -38,10 +38,13 @@ RUN wget https://dl.k8s.io/release/v${VERSION}/bin/${PLATFORM}/${ARCH}/kubectl.s
 RUN echo "$(cat kubectl.sha256) kubectl" | sha256sum --check
 RUN chmod 755 kubectl
 
+FROM alpine/helm:3.18 AS helm
+
 FROM mcr.microsoft.com/devcontainers/base:alpine-3.20 AS final
 COPY --from=terraform /tmp/terraform /usr/local/bin/tf
 COPY --from=flyctl /tmp/flyctl /usr/local/bin/fly
 COPY --from=go /tmp/go/ /usr/local/go/
 COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
+COPY --from=helm /usr/bin/helm /usr/local/bin/helm
 ENV PATH=${PATH}:/usr/local/go/bin
 RUN apk add --no-cache aws-cli
