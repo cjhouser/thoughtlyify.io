@@ -104,4 +104,7 @@ resource "aws_eks_addon" "coredns" {
   addon_name    = "coredns"
   addon_version = "v1.12.1-eksbuild.2"
   cluster_name  = aws_eks_cluster.platform.name
+  depends_on = [
+    aws_eks_node_group.nodes_0
+  ]
 }
