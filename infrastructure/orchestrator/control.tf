@@ -102,3 +102,69 @@ resource "aws_eks_addon" "coredns" {
     aws_eks_node_group.nodes_0
   ]
 }
+
+resource "aws_iam_openid_connect_provider" "platform" {
+  client_id_list = [
+    "sts.amazonaws.com",
+  ]
+  url = aws_eks_cluster.platform.identity[0].oidc[0].issuer
+}
+
+data "aws_iam_policy_document" "authn_AWSLoadBalancerController" {
+  statement {
+    actions = [
+      "sts:AssumeRoleWithWebIdentity",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "${local.short_oidc_arn}:aud"
+      values = [
+        "sts.amazonaws.com",
+      ]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${local.short_oidc_arn}:sub"
+      #oidc.eks.us-west-2.amazonaws.com/id/FA912253F50AB29CD99909BC94C6D08B:aud
+      values = [
+        "system:serviceaccount:kube-system:aws-load-balancer-controller", # hardcoded because of cycle
+      ]
+    }
+    effect = "Allow"
+    principals {
+      type = "Federated"
+      identifiers = [
+        aws_iam_openid_connect_provider.platform.arn,
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "AWSLoadBalancerController" {
+  name               = "AWSLoadBalancerController"
+  assume_role_policy = data.aws_iam_policy_document.authn_AWSLoadBalancerController.json
+}
+
+data "aws_iam_policy" "AWSLoadBalancerController" {
+  name = "AWSLoadBalancerController"
+}
+
+resource "aws_iam_role_policy_attachment" "AWSLoadBalancerController" {
+  role       = aws_iam_role.AWSLoadBalancerController.name
+  policy_arn = data.aws_iam_policy.AWSLoadBalancerController.arn
+}
+
+resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controller" {
+  metadata {
+    annotations = merge(local.k8s_common_annotations, {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.AWSLoadBalancerController.arn
+    })
+    labels    = merge(local.k8s_common_labels, {})
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+  }
+
+  depends_on = [
+    aws_eks_cluster.platform
+  ]
+}

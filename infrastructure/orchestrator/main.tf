@@ -12,6 +12,17 @@ terraform {
   }
 }
 
+locals {
+  short_oidc_arn = split("/", aws_iam_openid_connect_provider.platform.arn)[1]
+  k8s_common_annotations = {
+    "thoughtlyify.io/directory"  = "infrastructure/orchestrator/"
+    "thoughtlyify.io/repository" = "github.com/cjhouser/thoughtlyify.io"
+  }
+  k8s_common_labels = {
+    "app.kubernetes.io/managed-by" = "terraform"
+  }
+}
+
 provider "aws" {
   region = "us-west-2"
 
