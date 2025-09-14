@@ -3,7 +3,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.0.0"
+      version = "~> 6.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.38.0"
     }
   }
 }
@@ -30,4 +34,14 @@ data "aws_iam_role" "eks_cluster_role" {
 
 data "aws_iam_role" "eks_node" {
   name = "eks_node"
+}
+
+provider "kubernetes" {
+  host                   = aws_eks_cluster.platform.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.platform.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.platform.name]
+    command     = "aws"
+  }
 }
