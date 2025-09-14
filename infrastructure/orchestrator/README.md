@@ -1,3 +1,7 @@
+# Initialization
+1. Apply infrasturcture/aws/ root module
+1. Apply infrastructure/orchestrator/ root module
+
 # VPC and Subnets
 - Two subnets in different availability zones. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html
 - The VPC must have a sufficient number of IP addresses for the following. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html#network-requirements-vpc
