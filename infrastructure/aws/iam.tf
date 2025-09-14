@@ -404,3 +404,9 @@ data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
     ]
   }
 }
+
+resource "aws_iam_policy" "authz_AWSLoadBalancerController" {
+  name   = "AWSLoadBalancerController"
+  path   = "/"
+  policy = data.aws_iam_policy_document.authz_AmazonEKSLoadBalancerController.json
+}
