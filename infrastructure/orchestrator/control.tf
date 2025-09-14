@@ -168,3 +168,33 @@ resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controll
     aws_eks_cluster.platform
   ]
 }
+
+resource "helm_release" "kube-system_aws-load-balancer-controller" {
+  name       = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  version    = "1.13.0"
+  set = [
+    {
+      name  = "regionCode"
+      value = data.aws_region.current.region
+    },
+    {
+      name  = "vpcId"
+      value = aws_vpc.platform.id
+    },
+    {
+      name  = "clusterName"
+      value = aws_eks_cluster.platform.name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = "false"
+    },
+    {
+      name  = "serviceAccount.name"
+      value = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
+    },
+  ]
+}
