@@ -178,3 +178,66 @@ resource "aws_nat_gateway" "north_south_c" {
   allocation_id = aws_eip.north_south_b.allocation_id
   subnet_id     = aws_subnet.north_south_c.id
 }
+
+resource "aws_lb" "platform" {
+  ip_address_type = "dualstack"
+  name            = "platform"
+  security_groups = [
+    aws_security_group.public.id
+  ]
+  subnets = [
+    aws_subnet.north_south_a.id,
+    aws_subnet.north_south_b.id,
+    aws_subnet.north_south_c.id,
+  ]
+}
+
+resource "aws_lb_target_group" "platform" {
+  name     = "platform"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.platform.id
+}
+
+resource "aws_lb_listener" "platform" {
+  load_balancer_arn = aws_lb.platform.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.platform.arn
+  }
+}
+
+resource "aws_security_group" "public" {
+  name   = "public"
+  vpc_id = aws_vpc.platform.id
+}
+
+resource "aws_security_group_ingress_rule" "http_ipv4" {
+  security_group_id = aws_security_group.public
+  description       = "Allow all inbound traffic on the load balancer listener port"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = aws_lb_listener.platform.port
+  ip_protocol       = "tcp"
+  to_port           = aws_lb_listener.platform.port
+}
+
+resource "aws_security_group_ingress_rule" "http_ipv6" {
+  security_group_id = aws_security_group.public
+  description       = "Allow all inbound traffic on the load balancer listener port"
+  cidr_ipv6         = "::/0"
+  from_port         = aws_lb_listener.platform.port
+  ip_protocol       = "tcp"
+  to_port           = aws_lb_listener.platform.port
+}
+
+resource "aws_security_group_egress_rule" "http_ipv4" {
+  security_group_id            = aws_security_group.public
+  description                  = "Allow outbound traffic to instances on the instance listener port"
+  referenced_security_group_id = aws_security_group.instance.id
+  from_port                    = aws_lb_listener.platform.port
+  ip_protocol                  = "tcp"
+  to_port                      = aws_lb_listener.platform.port
+}
