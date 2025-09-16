@@ -7,7 +7,8 @@ resource "aws_subnet" "nodes_a" {
   ipv6_cidr_block                                = cidrsubnet(aws_vpc.platform.ipv6_cidr_block, 8, 5)
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name = "nodes_a"
+    Name                              = "nodes_a"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
@@ -20,7 +21,8 @@ resource "aws_subnet" "nodes_b" {
   ipv6_cidr_block                                = cidrsubnet(aws_vpc.platform.ipv6_cidr_block, 8, 6)
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name = "nodes_b"
+    Name                              = "nodes_b"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
@@ -33,7 +35,8 @@ resource "aws_subnet" "nodes_c" {
   ipv6_cidr_block                                = cidrsubnet(aws_vpc.platform.ipv6_cidr_block, 8, 7)
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name = "nodes_c"
+    Name                              = "nodes_c"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
 

@@ -90,7 +90,8 @@ resource "aws_subnet" "north_south_a" {
   map_public_ip_on_launch                        = true
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name = "north_south_a"
+    Name                     = "north_south_a"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -104,7 +105,8 @@ resource "aws_subnet" "north_south_b" {
   map_public_ip_on_launch                        = true
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name = "north_south_b"
+    Name                     = "north_south_b"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -118,7 +120,8 @@ resource "aws_subnet" "north_south_c" {
   map_public_ip_on_launch                        = true
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name = "north_south_c"
+    Name                     = "north_south_c"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
