@@ -58,7 +58,6 @@ resource "aws_subnet" "north_south_a" {
   vpc_id                                         = aws_vpc.platform.id
   tags = {
     Name                     = "north_south_a"
-    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -73,7 +72,6 @@ resource "aws_subnet" "north_south_b" {
   vpc_id                                         = aws_vpc.platform.id
   tags = {
     Name                     = "north_south_b"
-    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -88,7 +86,6 @@ resource "aws_subnet" "north_south_c" {
   vpc_id                                         = aws_vpc.platform.id
   tags = {
     Name                     = "north_south_c"
-    "kubernetes.io/role/elb" = 1
   }
 }
 

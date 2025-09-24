@@ -8,7 +8,6 @@ resource "aws_subnet" "nodes_a" {
   vpc_id                                         = aws_vpc.platform.id
   tags = {
     Name                              = "nodes_a"
-    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
@@ -22,7 +21,6 @@ resource "aws_subnet" "nodes_b" {
   vpc_id                                         = aws_vpc.platform.id
   tags = {
     Name                              = "nodes_b"
-    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
@@ -36,7 +34,6 @@ resource "aws_subnet" "nodes_c" {
   vpc_id                                         = aws_vpc.platform.id
   tags = {
     Name                              = "nodes_c"
-    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
