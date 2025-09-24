@@ -181,6 +181,7 @@ resource "aws_nat_gateway" "north_south_c" {
 
 resource "aws_lb" "platform" {
   ip_address_type = "dualstack"
+  load_balancer_type = "network"
   name            = "platform"
   security_groups = [
     aws_security_group.public.id
@@ -194,8 +195,8 @@ resource "aws_lb" "platform" {
 
 resource "aws_lb_target_group" "platform" {
   name            = "platform"
-  port            = 80
-  protocol        = "HTTP"
+  port            = 443
+  protocol        = "TCP"
   vpc_id          = aws_vpc.platform.id
   target_type     = "ip"
   ip_address_type = "ipv6"
@@ -203,13 +204,14 @@ resource "aws_lb_target_group" "platform" {
     enabled  = true
     protocol = "HTTP"
     path     = "/healthz"
+    port = 10254
   }
 }
 
 resource "aws_lb_listener" "platform" {
   load_balancer_arn = aws_lb.platform.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = 443
+  protocol          = "TCP"
 
   default_action {
     type             = "forward"
@@ -222,15 +224,6 @@ resource "aws_security_group" "public" {
   vpc_id = aws_vpc.platform.id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "http_ipv4" {
-  security_group_id = aws_security_group.public.id
-  description       = "Allow all inbound traffic on the load balancer listener port"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = aws_lb_listener.platform.port
-  ip_protocol       = "tcp"
-  to_port           = aws_lb_listener.platform.port
-}
-
 resource "aws_vpc_security_group_ingress_rule" "http_ipv6" {
   security_group_id = aws_security_group.public.id
   description       = "Allow all inbound traffic on the load balancer listener port"
@@ -240,20 +233,38 @@ resource "aws_vpc_security_group_ingress_rule" "http_ipv6" {
   to_port           = aws_lb_listener.platform.port
 }
 
-resource "aws_vpc_security_group_egress_rule" "http" {
+resource "aws_vpc_security_group_egress_rule" "platform_traffic" {
   security_group_id            = aws_security_group.public.id
-  description                  = "Allow outbound traffic to instances on the instance listener port"
+  description                  = "Traffic from lb to cluster"
   referenced_security_group_id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
   from_port                    = aws_lb_target_group.platform.port
   ip_protocol                  = "tcp"
   to_port                      = aws_lb_target_group.platform.port
 }
 
-resource "aws_vpc_security_group_ingress_rule" "platform_cluster_http" {
+resource "aws_vpc_security_group_egress_rule" "platform_health_check" {
+  security_group_id            = aws_security_group.public.id
+  description                  = "Health check from lb to cluster"
+  referenced_security_group_id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  from_port                    = aws_lb_target_group.platform.health_check[0].port
+  ip_protocol                  = "tcp"
+  to_port                      = aws_lb_target_group.platform.health_check[0].port
+}
+
+resource "aws_vpc_security_group_ingress_rule" "platform_traffic" {
   security_group_id            = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
-  description                  = "Allow inbound HTTP traffic to workfloads in the EKS cluster"
+  description                  = "Traffic from lb to cluster"
   referenced_security_group_id = aws_security_group.public.id
   from_port                    = aws_lb_target_group.platform.port
   ip_protocol                  = "tcp"
   to_port                      = aws_lb_target_group.platform.port
+}
+
+resource "aws_vpc_security_group_ingress_rule" "platform_health_check" {
+  security_group_id            = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  description                  = "Health check from lb to cluster"
+  referenced_security_group_id = aws_security_group.public.id
+  from_port                    = aws_lb_target_group.platform.health_check[0].port
+  ip_protocol                  = "tcp"
+  to_port                      = aws_lb_target_group.platform.health_check[0].port
 }
