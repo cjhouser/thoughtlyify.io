@@ -193,10 +193,17 @@ resource "aws_lb" "platform" {
 }
 
 resource "aws_lb_target_group" "platform" {
-  name     = "platform"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.platform.id
+  name            = "platform"
+  port            = 80
+  protocol        = "HTTP"
+  vpc_id          = aws_vpc.platform.id
+  target_type     = "ip"
+  ip_address_type = "ipv6"
+  health_check {
+    enabled  = true
+    protocol = "HTTP"
+    path     = "/healthz"
+  }
 }
 
 resource "aws_lb_listener" "platform" {
@@ -215,8 +222,8 @@ resource "aws_security_group" "public" {
   vpc_id = aws_vpc.platform.id
 }
 
-resource "aws_security_group_ingress_rule" "http_ipv4" {
-  security_group_id = aws_security_group.public
+resource "aws_vpc_security_group_ingress_rule" "http_ipv4" {
+  security_group_id = aws_security_group.public.id
   description       = "Allow all inbound traffic on the load balancer listener port"
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = aws_lb_listener.platform.port
@@ -224,8 +231,8 @@ resource "aws_security_group_ingress_rule" "http_ipv4" {
   to_port           = aws_lb_listener.platform.port
 }
 
-resource "aws_security_group_ingress_rule" "http_ipv6" {
-  security_group_id = aws_security_group.public
+resource "aws_vpc_security_group_ingress_rule" "http_ipv6" {
+  security_group_id = aws_security_group.public.id
   description       = "Allow all inbound traffic on the load balancer listener port"
   cidr_ipv6         = "::/0"
   from_port         = aws_lb_listener.platform.port
@@ -233,11 +240,20 @@ resource "aws_security_group_ingress_rule" "http_ipv6" {
   to_port           = aws_lb_listener.platform.port
 }
 
-resource "aws_security_group_egress_rule" "http_ipv4" {
-  security_group_id            = aws_security_group.public
+resource "aws_vpc_security_group_egress_rule" "http" {
+  security_group_id            = aws_security_group.public.id
   description                  = "Allow outbound traffic to instances on the instance listener port"
-  referenced_security_group_id = aws_security_group.instance.id
-  from_port                    = aws_lb_listener.platform.port
+  referenced_security_group_id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  from_port                    = aws_lb_target_group.platform.port
   ip_protocol                  = "tcp"
-  to_port                      = aws_lb_listener.platform.port
+  to_port                      = aws_lb_target_group.platform.port
+}
+
+resource "aws_vpc_security_group_ingress_rule" "platform_cluster_http" {
+  security_group_id            = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  description                  = "Allow inbound HTTP traffic to workfloads in the EKS cluster"
+  referenced_security_group_id = aws_security_group.public.id
+  from_port                    = aws_lb_target_group.platform.port
+  ip_protocol                  = "tcp"
+  to_port                      = aws_lb_target_group.platform.port
 }

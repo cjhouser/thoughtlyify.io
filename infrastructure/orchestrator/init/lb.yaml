@@ -1,0 +1,16 @@
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: ingress-nginx-binding
+  namespace: ingress-nginx
+spec:
+  ipAddressType: ipv6
+  # The service we want to connect to.
+  # We use the Ingress Nginx Controller so let's point to that service.
+  # NOTE: it was necessary for this TargetGroupBinding to be in the same namespace as the service.
+  serviceRef:
+    name: ingress-nginx-controller
+    port: 80
+  # NOTE: need the ARN of the TargetGroup... Bit of a PITA.
+  # Would be nice to use tags to look up the TargetGroup, for example.
+  targetGroupARN: arn:aws:elasticloadbalancing:us-west-2:014821610452:targetgroup/platform/3c18b3c941d375ae

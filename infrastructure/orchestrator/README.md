@@ -1,6 +1,9 @@
 # Initialization
 1. Apply infrasturcture/aws/ root module
 1. Apply infrastructure/orchestrator/ root module
+1. Create the ingress controller from init/ingress-nginx.yaml
+1. Update init/lib.yaml with the target_group_arn from terraform output
+1. Create the targetgroup object from init/lb.yaml
 
 # VPC and Subnets
 - Two subnets in different availability zones. https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html

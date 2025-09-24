@@ -165,7 +165,7 @@ resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controll
   }
 
   depends_on = [
-    aws_eks_cluster.platform
+    aws_eks_access_policy_association.cluster_admins,
   ]
 }
 
@@ -196,5 +196,8 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
       name  = "serviceAccount.name"
       value = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
     },
+  ]
+  depends_on = [
+    aws_eks_access_policy_association.cluster_admins,
   ]
 }
