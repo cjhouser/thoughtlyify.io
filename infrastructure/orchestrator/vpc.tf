@@ -57,7 +57,7 @@ resource "aws_subnet" "north_south_a" {
   map_public_ip_on_launch                        = true
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name                     = "north_south_a"
+    Name = "north_south_a"
   }
 }
 
@@ -71,7 +71,7 @@ resource "aws_subnet" "north_south_b" {
   map_public_ip_on_launch                        = true
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name                     = "north_south_b"
+    Name = "north_south_b"
   }
 }
 
@@ -85,7 +85,7 @@ resource "aws_subnet" "north_south_c" {
   map_public_ip_on_launch                        = true
   vpc_id                                         = aws_vpc.platform.id
   tags = {
-    Name                     = "north_south_c"
+    Name = "north_south_c"
   }
 }
 
@@ -105,9 +105,9 @@ resource "aws_route_table_association" "north_south_c" {
 }
 
 resource "aws_lb" "platform" {
-  ip_address_type = "dualstack"
+  ip_address_type    = "dualstack"
   load_balancer_type = "network"
-  name            = "platform"
+  name               = "platform"
   security_groups = [
     aws_security_group.public.id
   ]
@@ -129,7 +129,7 @@ resource "aws_lb_target_group" "platform" {
     enabled  = true
     protocol = "HTTP"
     path     = "/healthz"
-    port = 10254
+    port     = 10254
   }
 }
 
