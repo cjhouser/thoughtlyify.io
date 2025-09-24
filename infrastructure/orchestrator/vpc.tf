@@ -38,25 +38,7 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_route_table" "nodes_a" {
-  vpc_id = aws_vpc.platform.id
-
-  route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_egress_only_internet_gateway.eigw.id
-  }
-}
-
-resource "aws_route_table" "nodes_b" {
-  vpc_id = aws_vpc.platform.id
-
-  route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_egress_only_internet_gateway.eigw.id
-  }
-}
-
-resource "aws_route_table" "nodes_c" {
+resource "aws_route_table" "private" {
   vpc_id = aws_vpc.platform.id
 
   route {
