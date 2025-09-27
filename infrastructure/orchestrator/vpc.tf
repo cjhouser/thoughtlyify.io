@@ -193,3 +193,106 @@ resource "aws_vpc_security_group_ingress_rule" "platform_health_check" {
   ip_protocol                  = "tcp"
   to_port                      = aws_lb_target_group.platform.health_check[0].port
 }
+
+resource "aws_vpc_endpoint" "s3" {
+  private_dns_enabled = false
+  route_table_ids = [
+    aws_route_table.private.id
+  ]
+  service_name = "com.amazonaws.${data.aws_region.current.region}.s3"
+  tags = {
+    Name = "s3"
+  }
+  vpc_endpoint_type = "Gateway"
+  vpc_id            = aws_vpc.platform.id
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  ip_address_type     = "ipv4"
+  private_dns_enabled = true
+  security_group_ids = [
+    aws_security_group.privatelink.id
+  ]
+  service_name = "com.amazonaws.${data.aws_region.current.region}.ecr.api"
+  subnet_ids = [
+    aws_subnet.control_a.id,
+    aws_subnet.control_b.id,
+  ]
+  tags = {
+    Name = "ecr.api"
+  }
+  vpc_endpoint_type = "Interface"
+  vpc_id            = aws_vpc.platform.id
+  dns_options {
+    dns_record_ip_type                             = "ipv4"
+    private_dns_only_for_inbound_resolver_endpoint = false
+  }
+}
+
+resource "aws_vpc_endpoint" "ec2" {
+  ip_address_type     = "ipv4"
+  private_dns_enabled = true
+  security_group_ids = [
+    aws_security_group.privatelink.id
+  ]
+  service_name = "com.amazonaws.${data.aws_region.current.region}.ec2"
+  subnet_ids = [
+    aws_subnet.control_a.id,
+    aws_subnet.control_b.id,
+  ]
+  vpc_endpoint_type = "Interface"
+  vpc_id            = aws_vpc.platform.id
+  dns_options {
+    dns_record_ip_type                             = "ipv4"
+    private_dns_only_for_inbound_resolver_endpoint = false
+  }
+  tags = {
+    Name = "ec2"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  ip_address_type     = "ipv4"
+  private_dns_enabled = true
+  security_group_ids = [
+    aws_security_group.privatelink.id
+  ]
+  service_name = "com.amazonaws.${data.aws_region.current.region}.ecr.dkr"
+  subnet_ids = [
+    aws_subnet.control_a.id,
+    aws_subnet.control_b.id,
+  ]
+  tags = {
+    Name = "ecr.dkr"
+  }
+  vpc_endpoint_type = "Interface"
+  vpc_id            = aws_vpc.platform.id
+  dns_options {
+    dns_record_ip_type                             = "ipv4"
+    private_dns_only_for_inbound_resolver_endpoint = false
+  }
+}
+
+resource "aws_security_group" "privatelink" {
+  vpc_id      = aws_vpc.platform.id
+  description = "allow traffic from eks nodes to privatelink"
+  name        = "privatelink"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "eks_nodes_to_privatelink" {
+  security_group_id            = aws_security_group.privatelink.id
+  referenced_security_group_id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  ip_protocol                  = -1
+}
+
+resource "aws_vpc_security_group_egress_rule" "privatelink_to_vpc_ipv4" {
+  security_group_id = aws_security_group.privatelink.id
+  cidr_ipv4         = aws_vpc.platform.cidr_block
+  ip_protocol       = -1
+}
+
+resource "aws_vpc_security_group_egress_rule" "privatelink_to_vpc_ipv6" {
+  security_group_id = aws_security_group.privatelink.id
+  cidr_ipv6         = aws_vpc.platform.ipv6_cidr_block
+  ip_protocol       = -1
+}
