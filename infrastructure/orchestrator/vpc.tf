@@ -1,3 +1,7 @@
+data "aws_security_group" "eks_platform" {
+  id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+}
+
 resource "aws_vpc" "platform" {
   assign_generated_ipv6_cidr_block = true
   enable_dns_hostnames             = true
@@ -161,7 +165,7 @@ resource "aws_vpc_security_group_ingress_rule" "http_ipv6" {
 resource "aws_vpc_security_group_egress_rule" "platform_traffic" {
   security_group_id            = aws_security_group.public.id
   description                  = "Traffic from lb to cluster"
-  referenced_security_group_id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  referenced_security_group_id = data.aws_security_group.eks_platform.id
   from_port                    = aws_lb_target_group.platform.port
   ip_protocol                  = "tcp"
   to_port                      = aws_lb_target_group.platform.port
@@ -170,14 +174,14 @@ resource "aws_vpc_security_group_egress_rule" "platform_traffic" {
 resource "aws_vpc_security_group_egress_rule" "platform_health_check" {
   security_group_id            = aws_security_group.public.id
   description                  = "Health check from lb to cluster"
-  referenced_security_group_id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  referenced_security_group_id = data.aws_security_group.eks_platform.id
   from_port                    = aws_lb_target_group.platform.health_check[0].port
   ip_protocol                  = "tcp"
   to_port                      = aws_lb_target_group.platform.health_check[0].port
 }
 
 resource "aws_vpc_security_group_ingress_rule" "platform_traffic" {
-  security_group_id            = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  security_group_id            = data.aws_security_group.eks_platform.id
   description                  = "Traffic from lb to cluster"
   referenced_security_group_id = aws_security_group.public.id
   from_port                    = aws_lb_target_group.platform.port
@@ -186,7 +190,7 @@ resource "aws_vpc_security_group_ingress_rule" "platform_traffic" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "platform_health_check" {
-  security_group_id            = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  security_group_id            = data.aws_security_group.eks_platform.id
   description                  = "Health check from lb to cluster"
   referenced_security_group_id = aws_security_group.public.id
   from_port                    = aws_lb_target_group.platform.health_check[0].port
@@ -281,7 +285,7 @@ resource "aws_security_group" "privatelink" {
 
 resource "aws_vpc_security_group_ingress_rule" "eks_nodes_to_privatelink" {
   security_group_id            = aws_security_group.privatelink.id
-  referenced_security_group_id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
+  referenced_security_group_id = data.aws_security_group.eks_platform.id
   ip_protocol                  = -1
 }
 
