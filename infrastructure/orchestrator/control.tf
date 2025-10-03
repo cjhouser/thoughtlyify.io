@@ -198,6 +198,10 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
       name  = "serviceAccount.name"
       value = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
     },
+    {
+      name = "image.repository"
+      value = "ecr-public.aws.com/eks/aws-load-balancer-controller"
+    },
   ]
   depends_on = [
     aws_eks_access_policy_association.cluster_admins,
