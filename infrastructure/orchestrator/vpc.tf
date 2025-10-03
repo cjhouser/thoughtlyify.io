@@ -12,43 +12,48 @@ resource "aws_vpc" "platform" {
   }
 }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.platform.id
-
+resource "aws_internet_gateway" "platform" {
   tags = {
-    Name = "igw"
+    Name = "platform"
   }
 }
 
-resource "aws_egress_only_internet_gateway" "eigw" {
-  vpc_id = aws_vpc.platform.id
-
-  tags = {
-    Name = "eigw"
-  }
+resource "aws_internet_gateway_attachment" "platform" {
+  internet_gateway_id = aws_internet_gateway.platform.id
+  vpc_id              = aws_vpc.platform.id
 }
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.platform.id
-
-  route {
-    ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.igw.id
+  tags = {
+    Name = "platform-public"
   }
+}
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+resource "aws_route" "public_north_south_ipv6" {
+  route_table_id              = aws_route_table.public.id
+  destination_ipv6_cidr_block = "::/0"
+  gateway_id                  = aws_internet_gateway.platform.id
+}
+
+resource "aws_egress_only_internet_gateway" "platform" {
+  vpc_id = aws_vpc.platform.id
+  tags = {
+    Name = "platform"
   }
 }
 
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.platform.id
-
-  route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_egress_only_internet_gateway.eigw.id
+  tags = {
+    Name = "platform-private"
   }
+}
+
+resource "aws_route" "private_north_ipv6" {
+  route_table_id              = aws_route_table.private.id
+  destination_ipv6_cidr_block = "::/0"
+  egress_only_gateway_id      = aws_egress_only_internet_gateway.platform.id
 }
 
 resource "aws_subnet" "north_south_a" {
@@ -151,11 +156,14 @@ resource "aws_lb_listener" "platform" {
 resource "aws_security_group" "public" {
   name   = "public"
   vpc_id = aws_vpc.platform.id
+  tags = {
+    Name = "public"
+  }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "http_ipv6" {
+resource "aws_vpc_security_group_ingress_rule" "public_https_ipv6" {
   security_group_id = aws_security_group.public.id
-  description       = "Allow all inbound traffic on the load balancer listener port"
+  description       = "HTTPS traffic from the internet"
   cidr_ipv6         = "::/0"
   from_port         = aws_lb_listener.platform.port
   ip_protocol       = "tcp"
@@ -281,6 +289,9 @@ resource "aws_security_group" "privatelink" {
   vpc_id      = aws_vpc.platform.id
   description = "allow traffic from eks nodes to privatelink"
   name        = "privatelink"
+  tags = {
+    Name = "privatelink"
+  }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "eks_nodes_to_privatelink" {
