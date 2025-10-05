@@ -51,8 +51,7 @@ resource "aws_eks_cluster" "platform" {
     endpoint_private_access = true
     public_access_cidrs = [
       "73.93.82.208/32",
-      "2601:644:8081:7040:e905:68ef:367e:4df9/128",
-      "2601:646:a082:9220:dfa:1cbd:c64b:8911/128",
+      "24.23.136.148/32",
     ]
     subnet_ids = [
       aws_subnet.control_a.id,
