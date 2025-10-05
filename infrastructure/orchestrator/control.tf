@@ -175,7 +175,7 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.13.0"
+  version    = "1.13.4"
   set = [
     {
       name  = "regionCode"
@@ -198,11 +198,14 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
       value = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
     },
     {
-      name = "image.repository"
+      name  = "image.repository"
       value = "ecr-public.aws.com/eks/aws-load-balancer-controller"
     },
   ]
   depends_on = [
     aws_eks_access_policy_association.cluster_admins,
+    aws_eks_addon.cni,
+    aws_eks_addon.proxy,
+    aws_eks_addon.coredns,
   ]
 }
