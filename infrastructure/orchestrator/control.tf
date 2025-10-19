@@ -126,7 +126,6 @@ data "aws_iam_policy_document" "authn_AWSLoadBalancerController" {
     condition {
       test     = "StringEquals"
       variable = "${local.short_oidc_arn}:sub"
-      #oidc.eks.us-west-2.amazonaws.com/id/FA912253F50AB29CD99909BC94C6D08B:aud
       values = [
         "system:serviceaccount:kube-system:aws-load-balancer-controller", # hardcoded because of cycle
       ]
@@ -201,6 +200,22 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
       name  = "image.repository"
       value = "ecr-public.aws.com/eks/aws-load-balancer-controller"
     },
+    {
+      name = "logLevel"
+      value = "error"
+    },
+    {
+      name = "replicaCount"
+      value = 3
+    },
+    {
+      name = "defaultTargetType"
+      value = "ip"
+    },
+    {
+      name = "enableEndpointSlices"
+      value = true
+    }
   ]
   depends_on = [
     aws_eks_access_policy_association.cluster_admins,

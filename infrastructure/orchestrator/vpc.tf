@@ -30,6 +30,12 @@ resource "aws_route_table" "public" {
   }
 }
 
+resource "aws_route" "public_north_south_ipv4" {
+  route_table_id              = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id                  = aws_internet_gateway.platform.id
+}
+
 resource "aws_route" "public_north_south_ipv6" {
   route_table_id              = aws_route_table.public.id
   destination_ipv6_cidr_block = "::/0"
@@ -54,6 +60,12 @@ resource "aws_route" "private_north_ipv6" {
   route_table_id              = aws_route_table.private.id
   destination_ipv6_cidr_block = "::/0"
   egress_only_gateway_id      = aws_egress_only_internet_gateway.platform.id
+}
+
+resource "aws_route" "private_north_ipv4" {
+  route_table_id              = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.nat_a.id
 }
 
 resource "aws_subnet" "north_south_a" {
@@ -206,108 +218,18 @@ resource "aws_vpc_security_group_ingress_rule" "platform_health_check" {
   to_port                      = aws_lb_target_group.platform.health_check[0].port
 }
 
-resource "aws_vpc_endpoint" "s3" {
-  private_dns_enabled = false
-  route_table_ids = [
-    aws_route_table.private.id
-  ]
-  service_name = "com.amazonaws.${data.aws_region.current.region}.s3"
+resource "aws_eip" "nat_a" {
   tags = {
-    Name = "s3"
+    Name = "nat_a"
   }
-  vpc_endpoint_type = "Gateway"
-  vpc_id            = aws_vpc.platform.id
 }
 
-resource "aws_vpc_endpoint" "ecr_api" {
-  ip_address_type     = "ipv4"
-  private_dns_enabled = true
-  security_group_ids = [
-    aws_security_group.privatelink.id
-  ]
-  service_name = "com.amazonaws.${data.aws_region.current.region}.ecr.api"
-  subnet_ids = [
-    aws_subnet.control_a.id,
-    aws_subnet.control_b.id,
-  ]
+resource "aws_nat_gateway" "nat_a" {
+  connectivity_type = "public"
+  allocation_id = aws_eip.nat_a.allocation_id
+  subnet_id     = aws_subnet.north_south_a.id
   tags = {
-    Name = "ecr.api"
+    Name = "nat_a"
   }
-  vpc_endpoint_type = "Interface"
-  vpc_id            = aws_vpc.platform.id
-  dns_options {
-    dns_record_ip_type                             = "ipv4"
-    private_dns_only_for_inbound_resolver_endpoint = false
-  }
-}
-
-resource "aws_vpc_endpoint" "ec2" {
-  ip_address_type     = "ipv4"
-  private_dns_enabled = true
-  security_group_ids = [
-    aws_security_group.privatelink.id
-  ]
-  service_name = "com.amazonaws.${data.aws_region.current.region}.ec2"
-  subnet_ids = [
-    aws_subnet.control_a.id,
-    aws_subnet.control_b.id,
-  ]
-  vpc_endpoint_type = "Interface"
-  vpc_id            = aws_vpc.platform.id
-  dns_options {
-    dns_record_ip_type                             = "ipv4"
-    private_dns_only_for_inbound_resolver_endpoint = false
-  }
-  tags = {
-    Name = "ec2"
-  }
-}
-
-resource "aws_vpc_endpoint" "ecr_dkr" {
-  ip_address_type     = "ipv4"
-  private_dns_enabled = true
-  security_group_ids = [
-    aws_security_group.privatelink.id
-  ]
-  service_name = "com.amazonaws.${data.aws_region.current.region}.ecr.dkr"
-  subnet_ids = [
-    aws_subnet.control_a.id,
-    aws_subnet.control_b.id,
-  ]
-  tags = {
-    Name = "ecr.dkr"
-  }
-  vpc_endpoint_type = "Interface"
-  vpc_id            = aws_vpc.platform.id
-  dns_options {
-    dns_record_ip_type                             = "ipv4"
-    private_dns_only_for_inbound_resolver_endpoint = false
-  }
-}
-
-resource "aws_security_group" "privatelink" {
-  vpc_id      = aws_vpc.platform.id
-  description = "allow traffic from eks nodes to privatelink"
-  name        = "privatelink"
-  tags = {
-    Name = "privatelink"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "eks_nodes_to_privatelink" {
-  security_group_id            = aws_security_group.privatelink.id
-  referenced_security_group_id = data.aws_security_group.eks_platform.id
-  ip_protocol                  = -1
-}
-
-resource "aws_vpc_security_group_egress_rule" "privatelink_to_vpc_ipv4" {
-  security_group_id = aws_security_group.privatelink.id
-  cidr_ipv4         = aws_vpc.platform.cidr_block
-  ip_protocol       = -1
-}
-
-resource "aws_vpc_security_group_egress_rule" "privatelink_to_vpc_ipv6" {
-  security_group_id = aws_security_group.privatelink.id
-  cidr_ipv6         = aws_vpc.platform.ipv6_cidr_block
-  ip_protocol       = -1
+  depends_on = [aws_internet_gateway.platform]
 }
