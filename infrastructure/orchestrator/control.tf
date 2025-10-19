@@ -201,19 +201,19 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
       value = "ecr-public.aws.com/eks/aws-load-balancer-controller"
     },
     {
-      name = "logLevel"
+      name  = "logLevel"
       value = "error"
     },
     {
-      name = "replicaCount"
+      name  = "replicaCount"
       value = 3
     },
     {
-      name = "defaultTargetType"
+      name  = "defaultTargetType"
       value = "ip"
     },
     {
-      name = "enableEndpointSlices"
+      name  = "enableEndpointSlices"
       value = true
     }
   ]

@@ -31,9 +31,9 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route" "public_north_south_ipv4" {
-  route_table_id              = aws_route_table.public.id
+  route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id                  = aws_internet_gateway.platform.id
+  gateway_id             = aws_internet_gateway.platform.id
 }
 
 resource "aws_route" "public_north_south_ipv6" {
@@ -63,9 +63,9 @@ resource "aws_route" "private_north_ipv6" {
 }
 
 resource "aws_route" "private_north_ipv4" {
-  route_table_id              = aws_route_table.private.id
+  route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id = aws_nat_gateway.nat_a.id
+  nat_gateway_id         = aws_nat_gateway.nat_a.id
 }
 
 resource "aws_subnet" "north_south_a" {
@@ -226,8 +226,8 @@ resource "aws_eip" "nat_a" {
 
 resource "aws_nat_gateway" "nat_a" {
   connectivity_type = "public"
-  allocation_id = aws_eip.nat_a.allocation_id
-  subnet_id     = aws_subnet.north_south_a.id
+  allocation_id     = aws_eip.nat_a.allocation_id
+  subnet_id         = aws_subnet.north_south_a.id
   tags = {
     Name = "nat_a"
   }
