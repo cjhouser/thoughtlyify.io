@@ -128,9 +128,6 @@ data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
       "ec2:DescribeTags",
       "ec2:GetCoipPoolUsage",
       "ec2:DescribeCoipPools",
-      "ec2:GetSecurityGroupsForVpc",
-      "ec2:DescribeIpamPools",
-      "ec2:DescribeRouteTables",
       "elasticloadbalancing:DescribeLoadBalancers",
       "elasticloadbalancing:DescribeLoadBalancerAttributes",
       "elasticloadbalancing:DescribeListeners",
@@ -141,9 +138,6 @@ data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
       "elasticloadbalancing:DescribeTargetGroupAttributes",
       "elasticloadbalancing:DescribeTargetHealth",
       "elasticloadbalancing:DescribeTags",
-      "elasticloadbalancing:DescribeTrustStores",
-      "elasticloadbalancing:DescribeListenerAttributes",
-      "elasticloadbalancing:DescribeCapacityReservation",
     ]
     effect = "Allow"
     resources = [
@@ -329,32 +323,6 @@ data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
   }
   statement {
     actions = [
-      "elasticloadbalancing:ModifyLoadBalancerAttributes",
-      "elasticloadbalancing:SetIpAddressType",
-      "elasticloadbalancing:SetSecurityGroups",
-      "elasticloadbalancing:SetSubnets",
-      "elasticloadbalancing:DeleteLoadBalancer",
-      "elasticloadbalancing:ModifyTargetGroup",
-      "elasticloadbalancing:ModifyTargetGroupAttributes",
-      "elasticloadbalancing:DeleteTargetGroup",
-      "elasticloadbalancing:ModifyListenerAttributes",
-      "elasticloadbalancing:ModifyCapacityReservation",
-      "elasticloadbalancing:ModifyIpPools",
-    ]
-    condition {
-      test     = "Null"
-      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
-      values = [
-        "false",
-      ]
-    }
-    effect = "Allow"
-    resources = [
-      "*",
-    ]
-  }
-  statement {
-    actions = [
       "elasticloadbalancing:AddTags",
     ]
     condition {
@@ -381,6 +349,29 @@ data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
   }
   statement {
     actions = [
+      "elasticloadbalancing:ModifyLoadBalancerAttributes",
+      "elasticloadbalancing:SetIpAddressType",
+      "elasticloadbalancing:SetSecurityGroups",
+      "elasticloadbalancing:SetSubnets",
+      "elasticloadbalancing:DeleteLoadBalancer",
+      "elasticloadbalancing:ModifyTargetGroup",
+      "elasticloadbalancing:ModifyTargetGroupAttributes",
+      "elasticloadbalancing:DeleteTargetGroup",
+    ]
+    condition {
+      test     = "Null"
+      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
+      values = [
+        "false",
+      ]
+    }
+    effect = "Allow"
+    resources = [
+      "*",
+    ]
+  }
+  statement {
+    actions = [
       "elasticloadbalancing:RegisterTargets",
       "elasticloadbalancing:DeregisterTargets",
     ]
@@ -396,7 +387,6 @@ data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
       "elasticloadbalancing:AddListenerCertificates",
       "elasticloadbalancing:RemoveListenerCertificates",
       "elasticloadbalancing:ModifyRule",
-      "elasticloadbalancing:SetRulePriorities",
     ]
     effect = "Allow"
     resources = [
