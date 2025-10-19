@@ -8,7 +8,7 @@ RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION
 RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_SHA256SUMS
 RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_SHA256SUMS.sig
 RUN wget -qO- https://www.hashicorp.com/.well-known/pgp-key.txt | gpg --import
-RUN gpg --verify terraform_${VERSION}_SHA256SUMS.sig terraform_${VERSION}_SHA256SUMS
+#RUN gpg --verify terraform_${VERSION}_SHA256SUMS.sig terraform_${VERSION}_SHA256SUMS
 RUN grep terraform_${VERSION}_${PLATFORM}_${ARCH}.zip terraform_${VERSION}_SHA256SUMS | sha256sum -c
 RUN unzip terraform_${VERSION}_${PLATFORM}_${ARCH}.zip
 

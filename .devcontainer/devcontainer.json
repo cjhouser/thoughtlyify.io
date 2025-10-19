@@ -4,7 +4,7 @@
 	"name": "devenv",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"build": {
-		"dockerfile": "Dockerfile"
+		"dockerfile": "Containerfile"
 	},
 
 	"mounts": [
@@ -23,7 +23,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "echo 'alias gitr=\"git rebase -i --autosquash main\"' >> ~/.bashrc && echo 'alias k=kubectl' >> ~/.bashrc && echo \"source <(kubectl completion bash)\" >> ~/.bashrc && echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc",
+	"postCreateCommand": "echo 'alias gitr=\"git rebase -i --autosquash main\"' >> ~/.bashrc && echo 'alias k=kubectl' >> ~/.bashrc && echo 'alias ns=\"kubectl config set-context --current --namespace \"' && echo \"source <(kubectl completion bash)\" >> ~/.bashrc && echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc",
 
 	// Configure tool-specific properties.
 	"customizations": {
