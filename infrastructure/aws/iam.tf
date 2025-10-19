@@ -54,8 +54,8 @@ data "aws_iam_policy_document" "authz_ipv6_cni" {
 }
 
 resource "aws_iam_role" "eks_cluster_role" {
-  name               = "eks_cluster_role"
   assume_role_policy = data.aws_iam_policy_document.authn_eks_cluster.json
+  name               = "eks_cluster_role"
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
@@ -68,24 +68,24 @@ resource "aws_iam_role" "eks_node" {
   name               = "eks_node"
 }
 
-resource "aws_iam_role_policy_attachment" "eks_worker_node" {
-  role       = aws_iam_role.eks_node.name
+resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_node.name
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
-  role       = aws_iam_role.eks_node.name
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.eks_node.name
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_container_registry_pull_only" {
-  role       = aws_iam_role.eks_node.name
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryPullOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+  role       = aws_iam_role.eks_node.name
 }
 
 resource "aws_iam_role_policy_attachment" "ipv6_cni" {
-  role       = aws_iam_role.eks_node.name
   policy_arn = aws_iam_policy.ipv6_cni.arn
+  role       = aws_iam_role.eks_node.name
 }
 
 resource "aws_iam_policy" "ipv6_cni" {
