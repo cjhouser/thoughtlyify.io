@@ -83,13 +83,13 @@ resource "aws_eks_access_policy_association" "cluster_admins" {
   ]
 }
 
-resource "aws_eks_addon" "cni" {
+resource "aws_eks_addon" "vpc-cni" {
   addon_name    = "vpc-cni"
   addon_version = "v1.19.6-eksbuild.1"
   cluster_name  = aws_eks_cluster.platform.name
 }
 
-resource "aws_eks_addon" "proxy" {
+resource "aws_eks_addon" "kube-proxy" {
   addon_name    = "kube-proxy"
   addon_version = "v1.33.0-eksbuild.2"
   cluster_name  = aws_eks_cluster.platform.name
@@ -104,37 +104,23 @@ resource "aws_eks_addon" "coredns" {
   ]
 }
 
-resource "aws_iam_openid_connect_provider" "platform" {
-  client_id_list = [
-    "sts.amazonaws.com",
-  ]
-  url = aws_eks_cluster.platform.identity[0].oidc[0].issuer
+resource "aws_eks_addon" "eks-pod-identity-agent" {
+  addon_name    = "eks-pod-identity-agent"
+  addon_version = "v1.3.9-eksbuild.3"
+  cluster_name  = aws_eks_cluster.platform.name
 }
 
-data "aws_iam_policy_document" "authn_AWSLoadBalancerController" {
+data "aws_iam_policy_document" "authn_pod_identity" {
   statement {
     actions = [
-      "sts:AssumeRoleWithWebIdentity",
+      "sts:AssumeRole",
+      "sts:TagSession"
     ]
-    condition {
-      test     = "StringEquals"
-      variable = "${local.short_oidc_arn}:aud"
-      values = [
-        "sts.amazonaws.com",
-      ]
-    }
-    condition {
-      test     = "StringEquals"
-      variable = "${local.short_oidc_arn}:sub"
-      values = [
-        "system:serviceaccount:kube-system:aws-load-balancer-controller", # hardcoded because of cycle
-      ]
-    }
     effect = "Allow"
     principals {
-      type = "Federated"
+      type = "Service"
       identifiers = [
-        aws_iam_openid_connect_provider.platform.arn,
+        "pods.eks.amazonaws.com",
       ]
     }
   }
@@ -142,7 +128,7 @@ data "aws_iam_policy_document" "authn_AWSLoadBalancerController" {
 
 resource "aws_iam_role" "AWSLoadBalancerController" {
   name               = "AWSLoadBalancerController"
-  assume_role_policy = data.aws_iam_policy_document.authn_AWSLoadBalancerController.json
+  assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
 }
 
 data "aws_iam_policy" "AWSLoadBalancerController" {
@@ -150,8 +136,8 @@ data "aws_iam_policy" "AWSLoadBalancerController" {
 }
 
 resource "aws_iam_role_policy_attachment" "AWSLoadBalancerController" {
-  role       = aws_iam_role.AWSLoadBalancerController.name
   policy_arn = data.aws_iam_policy.AWSLoadBalancerController.arn
+  role       = aws_iam_role.AWSLoadBalancerController.name
 }
 
 resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controller" {
@@ -169,12 +155,19 @@ resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controll
   ]
 }
 
+resource "aws_eks_pod_identity_association" "aws_load_balancer_controller" {
+    cluster_name    = aws_eks_cluster.platform.name
+    namespace       = "kube-system"
+    service_account = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
+    role_arn        = aws_iam_role.AWSLoadBalancerController.arn
+}
+
 resource "helm_release" "kube-system_aws-load-balancer-controller" {
   name       = "aws-load-balancer-controller"
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.13.4"
+  version    = "1.14.1"
   set = [
     {
       name  = "regionCode"
@@ -197,16 +190,12 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
       value = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
     },
     {
-      name  = "image.repository"
-      value = "ecr-public.aws.com/eks/aws-load-balancer-controller"
-    },
-    {
       name  = "logLevel"
       value = "error"
     },
     {
       name  = "replicaCount"
-      value = 3
+      value = 2
     },
     {
       name  = "defaultTargetType"
@@ -219,8 +208,9 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
   ]
   depends_on = [
     aws_eks_access_policy_association.cluster_admins,
-    aws_eks_addon.cni,
-    aws_eks_addon.proxy,
+    aws_eks_addon.vpc-cni,
+    aws_eks_addon.kube-proxy,
     aws_eks_addon.coredns,
+    aws_eks_pod_identity_association.aws_load_balancer_controller,
   ]
 }

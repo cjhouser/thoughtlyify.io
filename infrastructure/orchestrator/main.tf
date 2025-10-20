@@ -17,8 +17,6 @@ terraform {
 }
 
 locals {
-  oidc_array     = split("/", aws_iam_openid_connect_provider.platform.arn)
-  short_oidc_arn = join("/", slice(local.oidc_array, 1, length(local.oidc_array)))
   k8s_common_annotations = {
     "thoughtlyify.io/directory"  = "infrastructure/orchestrator/"
     "thoughtlyify.io/repository" = "github.com/cjhouser/thoughtlyify.io"
