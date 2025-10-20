@@ -170,7 +170,7 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
   version    = "1.14.1"
   set = [
     {
-      name  = "regionCode"
+      name  = "region"
       value = data.aws_region.current.region
     },
     {
