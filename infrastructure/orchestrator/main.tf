@@ -52,6 +52,10 @@ data "aws_iam_role" "eks_node" {
   name = "eks_node"
 }
 
+data "aws_iam_policy" "AmazonEBSCSIDriverPolicy" {
+  name = "AmazonEBSCSIDriverPolicy"
+}
+
 provider "kubernetes" {
   host                   = aws_eks_cluster.platform.endpoint
   cluster_ca_certificate = base64decode(aws_eks_cluster.platform.certificate_authority[0].data)

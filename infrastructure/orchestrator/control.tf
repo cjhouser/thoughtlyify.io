@@ -83,13 +83,13 @@ resource "aws_eks_access_policy_association" "cluster_admins" {
   ]
 }
 
-resource "aws_eks_addon" "vpc-cni" {
+resource "aws_eks_addon" "vpc_cni" {
   addon_name    = "vpc-cni"
   addon_version = "v1.19.6-eksbuild.1"
   cluster_name  = aws_eks_cluster.platform.name
 }
 
-resource "aws_eks_addon" "kube-proxy" {
+resource "aws_eks_addon" "kube_proxy" {
   addon_name    = "kube-proxy"
   addon_version = "v1.33.0-eksbuild.2"
   cluster_name  = aws_eks_cluster.platform.name
@@ -104,10 +104,30 @@ resource "aws_eks_addon" "coredns" {
   ]
 }
 
-resource "aws_eks_addon" "eks-pod-identity-agent" {
+resource "aws_eks_addon" "pod_identity_agent" {
   addon_name    = "eks-pod-identity-agent"
   addon_version = "v1.3.9-eksbuild.3"
   cluster_name  = aws_eks_cluster.platform.name
+}
+
+resource "aws_iam_role" "aws_ebs_csi_driver" {
+  name               = "AmazonEKS_EBS_CSI_Driver"
+  assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEBSCSIDriverPolicy" {
+  policy_arn = data.aws_iam_policy.AmazonEBSCSIDriverPolicy.arn
+  role       = aws_iam_role.aws_ebs_csi_driver.name
+}
+
+resource "aws_eks_addon" "ebs" {
+  addon_name    = "aws-ebs-csi-driver"
+  addon_version = "v1.51.0-eksbuild.1"
+  cluster_name  = aws_eks_cluster.platform.name
+  pod_identity_association {
+    role_arn        = aws_iam_role.aws_ebs_csi_driver.arn
+    service_account = "ebs-csi-controller-sa"
+  }
 }
 
 data "aws_iam_policy_document" "authn_pod_identity" {
@@ -142,9 +162,6 @@ resource "aws_iam_role_policy_attachment" "AWSLoadBalancerController" {
 
 resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controller" {
   metadata {
-    annotations = merge(local.k8s_common_annotations, {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.AWSLoadBalancerController.arn
-    })
     labels    = merge(local.k8s_common_labels, {})
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
@@ -156,10 +173,10 @@ resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controll
 }
 
 resource "aws_eks_pod_identity_association" "aws_load_balancer_controller" {
-    cluster_name    = aws_eks_cluster.platform.name
-    namespace       = "kube-system"
-    service_account = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
-    role_arn        = aws_iam_role.AWSLoadBalancerController.arn
+  cluster_name    = aws_eks_cluster.platform.name
+  namespace       = "kube-system"
+  service_account = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
+  role_arn        = aws_iam_role.AWSLoadBalancerController.arn
 }
 
 resource "helm_release" "kube-system_aws-load-balancer-controller" {
@@ -208,8 +225,8 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
   ]
   depends_on = [
     aws_eks_access_policy_association.cluster_admins,
-    aws_eks_addon.vpc-cni,
-    aws_eks_addon.kube-proxy,
+    aws_eks_addon.vpc_cni,
+    aws_eks_addon.kube_proxy,
     aws_eks_addon.coredns,
     aws_eks_pod_identity_association.aws_load_balancer_controller,
   ]
