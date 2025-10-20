@@ -1,37 +1,3 @@
-resource "aws_subnet" "control_a" {
-  assign_ipv6_address_on_creation                = true
-  availability_zone                              = "us-west-2a"
-  cidr_block                                     = cidrsubnet(aws_vpc.platform.cidr_block, 3, 0)
-  enable_resource_name_dns_aaaa_record_on_launch = true
-  ipv6_cidr_block                                = cidrsubnet(aws_vpc.platform.ipv6_cidr_block, 8, 0)
-  vpc_id                                         = aws_vpc.platform.id
-  tags = {
-    Name = "control-a"
-  }
-}
-
-resource "aws_subnet" "control_b" {
-  assign_ipv6_address_on_creation                = true
-  availability_zone                              = "us-west-2b"
-  cidr_block                                     = cidrsubnet(aws_vpc.platform.cidr_block, 3, 1)
-  enable_resource_name_dns_aaaa_record_on_launch = true
-  ipv6_cidr_block                                = cidrsubnet(aws_vpc.platform.ipv6_cidr_block, 8, 1)
-  vpc_id                                         = aws_vpc.platform.id
-  tags = {
-    Name = "control-b"
-  }
-}
-
-resource "aws_route_table_association" "control_a" {
-  route_table_id = aws_route_table.public.id
-  subnet_id      = aws_subnet.control_a.id
-}
-
-resource "aws_route_table_association" "control_b" {
-  route_table_id = aws_route_table.public.id
-  subnet_id      = aws_subnet.control_b.id
-}
-
 resource "aws_eks_cluster" "platform" {
   bootstrap_self_managed_addons = false
   name                          = "platform"
@@ -110,54 +76,14 @@ resource "aws_eks_addon" "pod_identity_agent" {
   cluster_name  = aws_eks_cluster.platform.name
 }
 
-resource "aws_iam_role" "aws_ebs_csi_driver" {
-  name               = "AmazonEKS_EBS_CSI_Driver"
-  assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEBSCSIDriverPolicy" {
-  policy_arn = data.aws_iam_policy.AmazonEBSCSIDriverPolicy.arn
-  role       = aws_iam_role.aws_ebs_csi_driver.name
-}
-
 resource "aws_eks_addon" "ebs" {
   addon_name    = "aws-ebs-csi-driver"
   addon_version = "v1.51.0-eksbuild.1"
   cluster_name  = aws_eks_cluster.platform.name
   pod_identity_association {
-    role_arn        = aws_iam_role.aws_ebs_csi_driver.arn
+    role_arn        = data.aws_iam_role.aws_ebs_csi_driver.arn
     service_account = "ebs-csi-controller-sa"
   }
-}
-
-data "aws_iam_policy_document" "authn_pod_identity" {
-  statement {
-    actions = [
-      "sts:AssumeRole",
-      "sts:TagSession"
-    ]
-    effect = "Allow"
-    principals {
-      type = "Service"
-      identifiers = [
-        "pods.eks.amazonaws.com",
-      ]
-    }
-  }
-}
-
-resource "aws_iam_role" "AWSLoadBalancerController" {
-  name               = "AWSLoadBalancerController"
-  assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
-}
-
-data "aws_iam_policy" "AWSLoadBalancerController" {
-  name = "AWSLoadBalancerController"
-}
-
-resource "aws_iam_role_policy_attachment" "AWSLoadBalancerController" {
-  policy_arn = data.aws_iam_policy.AWSLoadBalancerController.arn
-  role       = aws_iam_role.AWSLoadBalancerController.name
 }
 
 resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controller" {
@@ -176,7 +102,7 @@ resource "aws_eks_pod_identity_association" "aws_load_balancer_controller" {
   cluster_name    = aws_eks_cluster.platform.name
   namespace       = "kube-system"
   service_account = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
-  role_arn        = aws_iam_role.AWSLoadBalancerController.arn
+  role_arn        = data.aws_iam_role.aws_load_balancer_controller.arn
 }
 
 resource "helm_release" "kube-system_aws-load-balancer-controller" {
@@ -230,4 +156,35 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
     aws_eks_addon.coredns,
     aws_eks_pod_identity_association.aws_load_balancer_controller,
   ]
+}
+
+resource "aws_eks_node_group" "nodes_0" {
+  ami_type        = "AL2023_ARM_64_STANDARD"
+  capacity_type   = "SPOT"
+  cluster_name    = aws_eks_cluster.platform.name
+  disk_size       = "20"
+  node_group_name = "node_0"
+  node_role_arn   = data.aws_iam_role.eks_node.arn
+  release_version = "1.33.0-20250704"
+  version         = "1.33"
+
+  instance_types = [
+    "t4g.medium"
+  ]
+
+  subnet_ids = [
+    aws_subnet.nodes_a.id,
+    aws_subnet.nodes_b.id,
+    aws_subnet.nodes_c.id
+  ]
+
+  scaling_config {
+    desired_size = 3
+    max_size     = 4
+    min_size     = 3
+  }
+
+  update_config {
+    max_unavailable = 1
+  }
 }

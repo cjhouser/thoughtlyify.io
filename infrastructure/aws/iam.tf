@@ -1,33 +1,64 @@
-data "aws_iam_policy_document" "authn_eks_cluster" {
-  statement {
-    actions = [
-      "sts:AssumeRole"
-    ]
-    effect = "Allow"
-    principals {
-      type = "Service"
-      identifiers = [
-        "eks.amazonaws.com"
-      ]
-    }
-  }
+#############
+### ROLES ###
+#############
+resource "aws_iam_role" "eks_cluster_role" {
+  assume_role_policy = data.aws_iam_policy_document.authn_eks_cluster.json
+  name               = "eks_cluster_role"
 }
 
-data "aws_iam_policy_document" "authn_eks_node" {
-  statement {
-    actions = [
-      "sts:AssumeRole"
-    ]
-    effect = "Allow"
-    principals {
-      type = "Service"
-      identifiers = [
-        "ec2.amazonaws.com"
-      ]
-    }
-  }
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  policy_arn = data.aws_iam_policy.eks_cluster_policy.arn
+  role       = aws_iam_role.eks_cluster_role.name
 }
 
+resource "aws_iam_role" "eks_node" {
+  assume_role_policy = data.aws_iam_policy_document.authn_eks_node.json
+  name               = "eks_node"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
+  policy_arn = data.aws_iam_policy.eks_worker_node_policy.arn
+  role       = aws_iam_role.eks_node.name
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
+  policy_arn = data.aws_iam_policy.ec2_container_registry_read_only.arn
+  role       = aws_iam_role.eks_node.name
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_container_registry_pull_only" {
+  policy_arn = data.aws_iam_policy.ec2_container_registry_pull_only.arn
+  role       = aws_iam_role.eks_node.name
+}
+
+resource "aws_iam_role_policy_attachment" "ipv6_cni" {
+  policy_arn = aws_iam_policy.ipv6_cni.arn
+  role       = aws_iam_role.eks_node.name
+}
+
+resource "aws_iam_role" "eks_ebs_csi_driver" {
+  name               = "AmazonEKS_EBS_CSI_Driver"
+  assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
+  policy_arn = data.aws_iam_policy.eks_ebs_csi_driver.arn
+  role       = aws_iam_role.eks_ebs_csi_driver.name
+}
+
+resource "aws_iam_role" "load_balancer_controller" {
+  name               = "AWSLoadBalancerController"
+  assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
+}
+
+resource "aws_iam_role_policy_attachment" "load_balancer_controller" {
+  policy_arn = aws_iam_policy.load_balancer_controller.arn
+  role       = aws_iam_role.load_balancer_controller.name
+}
+
+#####################
+### AUTHORIZATION ###
+#####################
 data "aws_iam_policy_document" "authz_ipv6_cni" {
   statement {
     actions = [
@@ -53,41 +84,6 @@ data "aws_iam_policy_document" "authz_ipv6_cni" {
   }
 }
 
-resource "aws_iam_role" "eks_cluster_role" {
-  assume_role_policy = data.aws_iam_policy_document.authn_eks_cluster.json
-  name               = "eks_cluster_role"
-}
-
-resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster_role.name
-}
-
-resource "aws_iam_role" "eks_node" {
-  assume_role_policy = data.aws_iam_policy_document.authn_eks_node.json
-  name               = "eks_node"
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.eks_node.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.eks_node.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryPullOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
-  role       = aws_iam_role.eks_node.name
-}
-
-resource "aws_iam_role_policy_attachment" "ipv6_cni" {
-  policy_arn = aws_iam_policy.ipv6_cni.arn
-  role       = aws_iam_role.eks_node.name
-}
-
 resource "aws_iam_policy" "ipv6_cni" {
   description = "ipv6 CNI EKS"
   name        = "ipv6_cni"
@@ -95,8 +91,7 @@ resource "aws_iam_policy" "ipv6_cni" {
   policy      = data.aws_iam_policy_document.authz_ipv6_cni.json
 }
 
-# save for later in case we want to use AWS LB controller
-data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
+data "aws_iam_policy_document" "authz_load_balancer_controller" {
   statement {
     actions = [
       "iam:CreateServiceLinkedRole",
@@ -395,8 +390,57 @@ data "aws_iam_policy_document" "authz_AmazonEKSLoadBalancerController" {
   }
 }
 
-resource "aws_iam_policy" "authz_AWSLoadBalancerController" {
+resource "aws_iam_policy" "load_balancer_controller" {
   name   = "AWSLoadBalancerController"
   path   = "/"
-  policy = data.aws_iam_policy_document.authz_AmazonEKSLoadBalancerController.json
+  policy = data.aws_iam_policy_document.authz_load_balancer_controller.json
+}
+
+######################
+### AUTHENTICATION ###
+######################
+data "aws_iam_policy_document" "authn_eks_cluster" {
+  statement {
+    actions = [
+      "sts:AssumeRole"
+    ]
+    effect = "Allow"
+    principals {
+      type = "Service"
+      identifiers = [
+        "eks.amazonaws.com"
+      ]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "authn_eks_node" {
+  statement {
+    actions = [
+      "sts:AssumeRole"
+    ]
+    effect = "Allow"
+    principals {
+      type = "Service"
+      identifiers = [
+        "ec2.amazonaws.com"
+      ]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "authn_pod_identity" {
+  statement {
+    actions = [
+      "sts:AssumeRole",
+      "sts:TagSession"
+    ]
+    effect = "Allow"
+    principals {
+      type = "Service"
+      identifiers = [
+        "pods.eks.amazonaws.com",
+      ]
+    }
+  }
 }
