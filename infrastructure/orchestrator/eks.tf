@@ -65,8 +65,9 @@ resource "aws_eks_addon" "coredns" {
   addon_name    = "coredns"
   addon_version = "v1.12.1-eksbuild.2"
   cluster_name  = aws_eks_cluster.platform.name
+
   depends_on = [
-    aws_eks_node_group.nodes_0
+    aws_eks_node_group.workers
   ]
 }
 
@@ -158,15 +159,13 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
   ]
 }
 
-resource "aws_eks_node_group" "nodes_0" {
+resource "aws_eks_node_group" "workers" {
   ami_type        = "AL2023_ARM_64_STANDARD"
   capacity_type   = "SPOT"
   cluster_name    = aws_eks_cluster.platform.name
   disk_size       = "20"
-  node_group_name = "node_0"
+  node_group_name = "workers"
   node_role_arn   = data.aws_iam_role.eks_node.arn
-  release_version = "1.33.0-20250704"
-  version         = "1.33"
 
   instance_types = [
     "t4g.medium"
@@ -182,6 +181,41 @@ resource "aws_eks_node_group" "nodes_0" {
     desired_size = 3
     max_size     = 4
     min_size     = 3
+  }
+
+  update_config {
+    max_unavailable = 1
+  }
+}
+
+resource "aws_eks_node_group" "persistence" {
+  ami_type        = "AL2023_ARM_64_STANDARD"
+  capacity_type   = "SPOT"
+  cluster_name    = aws_eks_cluster.platform.name
+  disk_size       = "20"
+  node_group_name = "persistence"
+  node_role_arn   = data.aws_iam_role.eks_node.arn
+
+  instance_types = [
+    "t4g.medium"
+  ]
+
+  subnet_ids = [
+    aws_subnet.nodes_a.id,
+    aws_subnet.nodes_b.id,
+    aws_subnet.nodes_c.id
+  ]
+
+  scaling_config {
+    desired_size = 3
+    max_size     = 4
+    min_size     = 3
+  }
+
+  taint {
+    key = "dedicated"
+    value = "persistence"
+    effect = "NO_SCHEDULE"
   }
 
   update_config {
