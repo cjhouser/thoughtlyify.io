@@ -1,0 +1,23 @@
+AWS: {
+  EKS: {
+    persistence Nodes: {
+      PostgreSQL
+    }
+    worker Nodes: {
+      ingress-nginx -> Concourse -> Vault
+    }
+    worker Nodes.Concourse -> persistence Nodes.PostgreSQL
+    worker Nodes.Vault -> persistence Nodes.PostgreSQL
+  }
+
+  EKS.persistence Nodes -> EBS Volumes
+  NLB -> EKS.worker Nodes.ingress-nginx
+}
+
+GitHub: {
+  cjhouser/thoughtlyify\.io
+  OAuth
+}
+
+AWS.EKS.worker Nodes.Concourse -> GitHub.OAuth
+AWS.EKS.worker Nodes.Concourse -> GitHub.cjhouser/thoughtlyify\.io

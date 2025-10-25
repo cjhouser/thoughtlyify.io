@@ -7,11 +7,11 @@ There are of course exceptions to all guidelines/rules in engineering. The idea 
 - Data persistence must use PostgreSQL as a storage backend unless it doesn't make sense for a tool to use a relational database as a storage backend
 - Tools which are written in the general purpose language are preferred
 
-### Infrastructure Provisioning/Configuration: Terraform
+### Infrastructure Provisioning/Configuration: OpenTofu
 ### Runtime: EKS
 ### Data Persistence Backend: PostreSQL + Local EBS Volumes
 ### Object Storage Backend: MinIO + Local EBS Volumes
-### Secret Management: Vault
+### Secret Management: OpenBao
 ### Automation: Concourse CI
 ### Message Queue:
 ### General Purpose Language: Golang
