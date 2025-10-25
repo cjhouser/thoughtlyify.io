@@ -1,17 +1,3 @@
-FROM mcr.microsoft.com/devcontainers/base:alpine-3.20 AS terraform
-ENV PLATFORM=linux
-ENV ARCH=amd64
-ENV VERSION=1.12.2
-WORKDIR /tmp
-RUN apk add --update --virtual .deps --no-cache gnupg
-RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_${PLATFORM}_${ARCH}.zip
-RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_SHA256SUMS
-RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_SHA256SUMS.sig
-RUN wget -qO- https://www.hashicorp.com/.well-known/pgp-key.txt | gpg --import
-#RUN gpg --verify terraform_${VERSION}_SHA256SUMS.sig terraform_${VERSION}_SHA256SUMS
-RUN grep terraform_${VERSION}_${PLATFORM}_${ARCH}.zip terraform_${VERSION}_SHA256SUMS | sha256sum -c
-RUN unzip terraform_${VERSION}_${PLATFORM}_${ARCH}.zip
-
 FROM mcr.microsoft.com/devcontainers/base:alpine-3.20 AS go
 ENV PLATFORM=linux
 ENV ARCH=amd64
@@ -43,11 +29,10 @@ FROM alpine/helm:3.18 AS helm
 FROM ghcr.io/opentofu/opentofu:1.10-minimal AS tofu
 
 FROM mcr.microsoft.com/devcontainers/base:alpine-3.20 AS final
-COPY --from=terraform /tmp/terraform /usr/local/bin/tf
 COPY --from=flyctl /tmp/flyctl /usr/local/bin/fly
 COPY --from=go /tmp/go/ /usr/local/go/
 COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
 COPY --from=helm /usr/bin/helm /usr/local/bin/helm
-COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
+COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tf
 ENV PATH=${PATH}:/usr/local/go/bin
 RUN apk add --no-cache aws-cli ack openssl
