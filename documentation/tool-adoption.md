@@ -1,10 +1,22 @@
 # Tool Adoption
-* a new tool or tech should fit within our process to be effective
-* constant adoption of a new tool will lead to massive management overhead
-* maintain a uniform method of management by curating new technologies
-* need criteria for when adoption is necessary
-* need criteria for when adoption is unnecessary
-* how to proceed when unncessary vs necessary?
-* what is the purpose of a new tool: it needs to solve a problem
-* tools should have a roadmap, not just fill immediate need
-* goal is to have mature processes for as few tools as possible
+There are of course exceptions to all guidelines/rules in engineering. The idea of curating technology is to ensure that maintenance does not become an enormous burden with a diverse skillset requirement.
+
+## Guidelines
+- A new tool must solve a problem
+    - Generalized tool is perferred over tools that solve a specific problem
+- Data persistence must use PostgreSQL as a storage backend unless it doesn't make sense for a tool to use a relational database as a storage backend
+- Tools which are written in the general purpose language are preferred
+
+### Infrastructure Provisioning/Configuration: Terraform
+### Runtime: EKS
+### Data Persistence Backend: PostreSQL + Local EBS Volumes
+### Object Storage Backend: MinIO + Local EBS Volumes
+### Secret Management: Vault
+### Automation: Concourse CI
+### Message Queue:
+### General Purpose Language: Golang
+### Telemetry Collection/Processing: OpenTelemetry
+### Dashboards:
+### Metrics backend:
+### Traces backend:
+### Logs backend:
