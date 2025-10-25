@@ -47,4 +47,4 @@ COPY --from=go /tmp/go/ /usr/local/go/
 COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
 COPY --from=helm /usr/bin/helm /usr/local/bin/helm
 ENV PATH=${PATH}:/usr/local/go/bin
-RUN apk add --no-cache aws-cli
+RUN apk add --no-cache aws-cli ack
