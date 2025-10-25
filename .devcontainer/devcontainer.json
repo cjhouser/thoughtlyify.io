@@ -8,10 +8,7 @@
 	},
 
 	"mounts": [
-        "type=bind,source=/Users/${localEnv:USER}/.ssh,target=/home/vscode/.ssh",
-        "type=bind,source=/Users/${localEnv:USER}/.kube,target=/home/vscode/.kube",
-        "type=bind,source=/Users/${localEnv:USER}/.aws,target=/home/vscode/.aws",
-        "type=bind,source=/Users/${localEnv:USER}/.git,target=/home/vscode/.git"
+		"type=volume,source=devvol,destination=/mnt/devvol,ro=false"
 	],
 	"runArgs": [
 		"--network=devnet"
@@ -23,7 +20,17 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "echo 'alias gitr=\"git rebase -i --autosquash main\"' >> ~/.bashrc && echo 'alias k=kubectl' >> ~/.bashrc && echo 'alias ns=\"kubectl config set-context --current --namespace \"' && echo \"source <(kubectl completion bash)\" >> ~/.bashrc && echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc",
+	"postCreateCommand": {
+		"rebase-alias": "echo 'alias gitr=\"git rebase -i --autosquash main\"' >> ~/.bashrc",
+		"kubectl-alias": "echo 'alias k=kubectl' >> ~/.bashrc",
+		"namespace-alias": "echo 'alias ns=\"kubectl config set-context --current --namespace \"' >> ~/.bashrc",
+		"kubectl-autocompletion": "echo \"source <(kubectl completion bash)\" >> ~/.bashrc",
+		"kubectl-alias-autocompletion": "echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc",
+		"volume-owner": "sudo chown -R $(id -u):$(id -g) /mnt/devvol",
+		".aws-link": "ln -s /mnt/devvol/aws ~/.aws",
+		".kube-link": "ln -s /mnt/devvol/kube ~/.kube",
+		".ssh-link": "rm -rf ~/.ssh && ln -s /mnt/devvol/ssh ~/.ssh"
+	},
 
 	// Configure tool-specific properties.
 	"customizations": {

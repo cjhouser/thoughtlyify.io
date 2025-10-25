@@ -4,6 +4,9 @@ Local development environment packaged into a container.
 - Add checksum checks for all tools
 
 ## Changelog
+### 8.0
+- switch from host filesystem bind mounts to named volumes for persistence
+- added `ack` command
 ### 7.0
 - added helm 3.18
 ### 6.0
