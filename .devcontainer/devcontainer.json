@@ -36,10 +36,10 @@
 	"customizations": {
     "vscode": {
         "extensions":[
-			"4ops.terraform",
 			"golang.go",
 			"ms-azuretools.vscode-docker",
-			"vmware.vscode-concourse"
+			"vmware.vscode-concourse",
+			"opentofu.vscode-opentofu"
 		]
     }
 }
