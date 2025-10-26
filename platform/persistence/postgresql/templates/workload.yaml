@@ -27,6 +27,8 @@ spec:
       - args:
         - "--config_file=/mnt/conf/postgresql.conf"
         env:
+        - name: PGDATA
+          value: /mnt/pg/data
         envFrom:
         - secretRef:
             name: {{ printf "%s-sensitive" .Release.Name }}
@@ -43,6 +45,8 @@ spec:
         volumeMounts:
         - name: conf
           mountPath: /mnt/conf
+        - name: pgdata
+          mountPath: /mnt/pg
         - name: tls
           mountPath: /mnt/tls
       securityContext:
@@ -58,6 +62,9 @@ spec:
         configMap:
           name: {{ printf "%s-conf" .Release.Name }}
           defaultMode: 0400
+      - name: pgdata
+        persistentVolumeClaim:
+          claimName: {{ printf "%s-data" .Release.Name }}
       - name: tls
         secret:
           secretName: {{ printf "%s-tls" .Release.Name }}
