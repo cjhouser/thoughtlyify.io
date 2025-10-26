@@ -45,7 +45,7 @@ spec:
         volumeMounts:
         - name: conf
           mountPath: /mnt/conf
-        - name: pgdata
+        - name: {{ printf "%s-data" .Release.Name }}
           mountPath: /mnt/pg
         - name: tls
           mountPath: /mnt/tls
@@ -62,10 +62,22 @@ spec:
         configMap:
           name: {{ printf "%s-conf" .Release.Name }}
           defaultMode: 0400
-      - name: pgdata
-        persistentVolumeClaim:
-          claimName: {{ printf "%s-data" .Release.Name }}
       - name: tls
         secret:
           secretName: {{ printf "%s-tls" .Release.Name }}
           defaultMode: 0400
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: {{ printf "%s-data" .Release.Name }}
+      annotations:
+        helm.sh/resource-policy: keep
+      labels: {{ include "labels" . | indent 8 }}
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: gp3
+      resources:
+        requests:
+          storage: 20Gi
