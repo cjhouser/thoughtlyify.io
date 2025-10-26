@@ -139,7 +139,7 @@ resource "helm_release" "kube-system_aws-load-balancer-controller" {
     },
     {
       name  = "replicaCount"
-      value = 2
+      value = 1
     },
     {
       name  = "defaultTargetType"
@@ -178,9 +178,9 @@ resource "aws_eks_node_group" "workers" {
   ]
 
   scaling_config {
-    desired_size = 3
-    max_size     = 4
-    min_size     = 3
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
   }
 
   update_config {
@@ -207,9 +207,9 @@ resource "aws_eks_node_group" "persistence" {
   ]
 
   scaling_config {
-    desired_size = 3
-    max_size     = 4
-    min_size     = 3
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
   }
 
   taint {
