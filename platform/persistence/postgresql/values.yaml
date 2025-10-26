@@ -1,0 +1,17 @@
+conf:
+  postgresql: |
+    hba_file = '/mnt/conf/pg_hba.conf'
+    listen_addresses = '::'
+    ssl = on
+    ssl_cert_file = '/mnt/tls/tls.crt'
+    ssl_key_file = '/mnt/tls/tls.key'
+    ssl_min_protocol_version = 'TLSv1.3'
+  pg_hba: |
+    # TYPE     DATABASE       USER       ADDRESS                      METHOD
+    local      postgres       postgres                                scram-sha-256
+    # Address is pulled from the AWS VPC configuration. Pods on k8s will use an IPv6 address from that subnet
+    hostssl    all            all        2600:1f14:188b:e300::/56     scram-sha-256
+secrets: {}
+tls:
+  key: ""
+  crt: ""
