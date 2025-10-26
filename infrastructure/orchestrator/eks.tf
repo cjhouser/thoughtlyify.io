@@ -1,0 +1,237 @@
+resource "aws_eks_cluster" "platform" {
+  bootstrap_self_managed_addons = false
+  name                          = "platform"
+  role_arn                      = data.aws_iam_role.eks_cluster_role.arn
+  version                       = "1.33"
+
+  access_config {
+    authentication_mode = "API"
+  }
+  kubernetes_network_config {
+    ip_family = "ipv6"
+  }
+  upgrade_policy {
+    support_type = "STANDARD"
+  }
+  vpc_config {
+    endpoint_private_access = true
+    public_access_cidrs = [
+      "73.93.82.208/32",
+      "24.23.136.148/32",
+    ]
+    subnet_ids = [
+      aws_subnet.control_a.id,
+      aws_subnet.control_b.id
+    ]
+  }
+  zonal_shift_config {
+    enabled = false
+  }
+}
+
+resource "aws_eks_access_entry" "chouser" {
+  cluster_name  = aws_eks_cluster.platform.name
+  principal_arn = data.aws_iam_user.chouser.arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "cluster_admins" {
+  cluster_name  = aws_eks_cluster.platform.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = data.aws_iam_user.chouser.arn
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [
+    aws_eks_access_entry.chouser
+  ]
+}
+
+resource "aws_eks_addon" "vpc_cni" {
+  addon_name    = "vpc-cni"
+  addon_version = "v1.19.6-eksbuild.1"
+  cluster_name  = aws_eks_cluster.platform.name
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  addon_name    = "kube-proxy"
+  addon_version = "v1.33.0-eksbuild.2"
+  cluster_name  = aws_eks_cluster.platform.name
+}
+
+resource "aws_eks_addon" "coredns" {
+  addon_name    = "coredns"
+  addon_version = "v1.12.1-eksbuild.2"
+  cluster_name  = aws_eks_cluster.platform.name
+
+  depends_on = [
+    aws_eks_node_group.workers
+  ]
+}
+
+resource "aws_eks_addon" "pod_identity_agent" {
+  addon_name    = "eks-pod-identity-agent"
+  addon_version = "v1.3.9-eksbuild.3"
+  cluster_name  = aws_eks_cluster.platform.name
+}
+
+resource "aws_eks_addon" "ebs" {
+  addon_name    = "aws-ebs-csi-driver"
+  addon_version = "v1.51.0-eksbuild.1"
+  cluster_name  = aws_eks_cluster.platform.name
+  pod_identity_association {
+    role_arn        = data.aws_iam_role.aws_ebs_csi_driver.arn
+    service_account = "ebs-csi-controller-sa"
+  }
+}
+
+resource "kubernetes_storage_class_v1" "gp3" {
+  metadata {
+    name = "gp3"
+  }
+  storage_provisioner = "ebs.csi.aws.com"
+  reclaim_policy      = "Delete"
+  parameters = {
+    type   = "gp3"
+    fsType = "ext4"
+  }
+  volume_binding_mode = "WaitForFirstConsumer"
+}
+
+resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controller" {
+  metadata {
+    labels    = merge(local.k8s_common_labels, {})
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+  }
+
+  depends_on = [
+    aws_eks_access_policy_association.cluster_admins,
+  ]
+}
+
+resource "aws_eks_pod_identity_association" "aws_load_balancer_controller" {
+  cluster_name    = aws_eks_cluster.platform.name
+  namespace       = "kube-system"
+  service_account = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
+  role_arn        = data.aws_iam_role.aws_load_balancer_controller.arn
+}
+
+resource "helm_release" "kube-system_aws-load-balancer-controller" {
+  name       = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  version    = "1.14.1"
+  set = [
+    {
+      name  = "region"
+      value = data.aws_region.current.region
+    },
+    {
+      name  = "vpcId"
+      value = aws_vpc.platform.id
+    },
+    {
+      name  = "clusterName"
+      value = aws_eks_cluster.platform.name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = "false"
+    },
+    {
+      name  = "serviceAccount.name"
+      value = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
+    },
+    {
+      name  = "logLevel"
+      value = "error"
+    },
+    {
+      name  = "replicaCount"
+      value = 1
+    },
+    {
+      name  = "defaultTargetType"
+      value = "ip"
+    },
+    {
+      name  = "enableEndpointSlices"
+      value = true
+    }
+  ]
+  depends_on = [
+    aws_eks_access_policy_association.cluster_admins,
+    aws_eks_addon.vpc_cni,
+    aws_eks_addon.kube_proxy,
+    aws_eks_addon.coredns,
+    aws_eks_pod_identity_association.aws_load_balancer_controller,
+  ]
+}
+
+resource "aws_eks_node_group" "workers" {
+  ami_type        = "AL2023_ARM_64_STANDARD"
+  capacity_type   = "SPOT"
+  cluster_name    = aws_eks_cluster.platform.name
+  disk_size       = "20"
+  node_group_name = "workers"
+  node_role_arn   = data.aws_iam_role.eks_node.arn
+
+  instance_types = [
+    "t4g.medium"
+  ]
+
+  subnet_ids = [
+    aws_subnet.nodes_a.id,
+    aws_subnet.nodes_b.id,
+    aws_subnet.nodes_c.id
+  ]
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  update_config {
+    max_unavailable = 1
+  }
+}
+
+resource "aws_eks_node_group" "persistence" {
+  ami_type        = "AL2023_ARM_64_STANDARD"
+  capacity_type   = "SPOT"
+  cluster_name    = aws_eks_cluster.platform.name
+  disk_size       = "20"
+  node_group_name = "persistence"
+  node_role_arn   = data.aws_iam_role.eks_node.arn
+
+  instance_types = [
+    "t4g.medium"
+  ]
+
+  subnet_ids = [
+    aws_subnet.nodes_a.id,
+    aws_subnet.nodes_b.id,
+    aws_subnet.nodes_c.id
+  ]
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  taint {
+    key    = "dedicated"
+    value  = "persistence"
+    effect = "NO_SCHEDULE"
+  }
+
+  update_config {
+    max_unavailable = 1
+  }
+}

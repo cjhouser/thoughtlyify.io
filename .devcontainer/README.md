@@ -4,6 +4,17 @@ Local development environment packaged into a container.
 - Add checksum checks for all tools
 
 ## Changelog
+### 10.0
+- remove `terraform`
+- Rename `opentofu` binary to `tf`
+### 9.0
+- added `openssl` package
+- added `opentofu`
+- added `opentofu` vscode extension
+- remove `terraform` vscode extension
+### 8.0
+- switch from host filesystem bind mounts to named volumes for persistence
+- added `ack` package
 ### 7.0
 - added helm 3.18
 ### 6.0

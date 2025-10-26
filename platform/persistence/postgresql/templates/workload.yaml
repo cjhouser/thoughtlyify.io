@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  labels: {{ include "labels" . | indent 4 }}
+spec:
+  selector:
+    matchLabels: {{ include "labels" . | indent 6 }}
+  serviceName: {{ printf "%s-headless" .Release.Name }}
+  replicas: 1
+  template:
+    metadata:
+      labels: {{ include "labels" . | indent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configuration.yaml") . | sha256sum }}
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks.amazonaws.com/nodegroup
+                operator: In
+                values:
+                - persistence
+      containers:
+      - args:
+        - "--config_file=/mnt/conf/postgresql.conf"
+        env:
+        - name: PGDATA
+          value: /mnt/pg/data
+        envFrom:
+        - secretRef:
+            name: {{ printf "%s-sensitive" .Release.Name }}
+        image: {{ printf "postgres:%s-alpine" .Chart.AppVersion }}
+        name: postgresql 
+        resources:
+          limits:
+            memory: 2500Mi
+          requests:
+            cpu: 1500m
+        securityContext:
+          runAsUser: 70 # matches the UID from the image
+          runAsGroup: 70 # matches the GID from the image
+        volumeMounts:
+        - name: conf
+          mountPath: /mnt/conf
+        - name: {{ printf "%s-data" .Release.Name }}
+          mountPath: /mnt/pg
+        - name: tls
+          mountPath: /mnt/tls
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 70 # matches the GID fromt he image
+      tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "persistence"
+        effect: "NoSchedule"
+      volumes:
+      - name: conf
+        configMap:
+          name: {{ printf "%s-conf" .Release.Name }}
+          defaultMode: 0400
+      - name: tls
+        secret:
+          secretName: {{ printf "%s-tls" .Release.Name }}
+          defaultMode: 0400
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: {{ printf "%s-data" .Release.Name }}
+      annotations:
+        helm.sh/resource-policy: keep
+      labels: {{ include "labels" . | indent 8 }}
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: gp3
+      resources:
+        requests:
+          storage: 20Gi
