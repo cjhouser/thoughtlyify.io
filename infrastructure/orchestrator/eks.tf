@@ -87,6 +87,19 @@ resource "aws_eks_addon" "ebs" {
   }
 }
 
+resource "kubernetes_storage_class_v1" "gp3" {
+  metadata {
+    name = "gp3"
+  }
+  storage_provisioner = "ebs.csi.aws.com"
+  reclaim_policy      = "Delete"
+  parameters = {
+    type   = "gp3"
+    fsType = "ext4"
+  }
+  volume_binding_mode = "WaitForFirstConsumer"
+}
+
 resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controller" {
   metadata {
     labels    = merge(local.k8s_common_labels, {})
@@ -213,8 +226,8 @@ resource "aws_eks_node_group" "persistence" {
   }
 
   taint {
-    key = "dedicated"
-    value = "persistence"
+    key    = "dedicated"
+    value  = "persistence"
     effect = "NO_SCHEDULE"
   }
 
