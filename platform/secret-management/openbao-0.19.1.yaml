@@ -1,3 +1,4 @@
+# https://github.com/openbao/openbao-helm/tree/v0.19.1/charts/openbao
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
@@ -18,7 +19,7 @@ global:
   #   - name: image-pull-secret
 
   # -- TLS for end-to-end encrypted transport
-  tlsDisable: true
+  tlsDisable: false
 
   # -- External openbao server address for the injector and CSI provider to use.
   # Setting this will disable deployment of a openbao server.
