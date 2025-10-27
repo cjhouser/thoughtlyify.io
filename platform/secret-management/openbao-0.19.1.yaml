@@ -404,14 +404,13 @@ server:
   # Supported log formats include: standard, json
   logFormat: "standard"
 
-  resources: {}
-  # resources:
-  #   requests:
-  #     memory: 256Mi
-  #     cpu: 250m
-  #   limits:
-  #     memory: 256Mi
-  #     cpu: 250m
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 250m
 
   # Ingress allows ingress services to be created to allow external access
   # from Kubernetes to access OpenBao pods.
