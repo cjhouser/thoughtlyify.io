@@ -325,7 +325,8 @@ injector:
   # Example:
   # nodeSelector:
   #   beta.kubernetes.io/arch: amd64
-  nodeSelector: {}
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: workers
 
   # Priority class for injector pods
   priorityClassName: ""
