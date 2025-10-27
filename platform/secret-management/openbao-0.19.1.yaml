@@ -192,7 +192,9 @@ injector:
     # namespaceSelector:
     #    matchLabels:
     #      sidecar-injector: enabled
-    namespaceSelector: {}
+    namespaceSelector:
+      matchLabels:
+        sidecar-injector: enabled
 
     # objectSelector is the selector for restricting the webhook to only
     # specific labels.
