@@ -58,7 +58,7 @@ injector:
   # -- If multiple replicas are specified, by default a leader will be determined
   # so that only one injector attempts to create TLS certificates.
   leaderElector:
-    enabled: true
+    enabled: false
 
   # -- If true, will enable a node exporter metrics endpoint at /metrics.
   metrics:
