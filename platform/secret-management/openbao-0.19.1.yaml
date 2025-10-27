@@ -398,11 +398,11 @@ server:
 
   # Configure the logging verbosity for the OpenBao server.
   # Supported log levels include: trace, debug, info, warn, error
-  logLevel: ""
+  logLevel: "error"
 
   # Configure the logging format for the OpenBao server.
   # Supported log formats include: standard, json
-  logFormat: ""
+  logFormat: "standard"
 
   resources: {}
   # resources:
