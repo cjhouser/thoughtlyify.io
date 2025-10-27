@@ -153,7 +153,7 @@ injector:
 
   # -- Configures the log verbosity of the injector.
   # Supported log levels include: trace, debug, info, warn, error
-  logLevel: "info"
+  logLevel: "error"
 
   # -- Configures the log format of the injector. Supported log formats: "standard", "json".
   logFormat: "standard"
