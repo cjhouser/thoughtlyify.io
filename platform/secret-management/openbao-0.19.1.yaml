@@ -167,7 +167,7 @@ injector:
     # To block pod creation while the webhook is unavailable, set the policy to `Fail` below.
     # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#failure-policy
     #
-    failurePolicy: Ignore
+    failurePolicy: Fail
 
     # matchPolicy specifies the approach to accepting changes based on the rules of
     # the MutatingWebhookConfiguration.
