@@ -95,9 +95,9 @@ injector:
   agentDefaults:
     # For more information on configuring resources, see the K8s documentation:
     # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-    cpuLimit: "500m"
-    cpuRequest: "250m"
-    memLimit: "128Mi"
+    cpuLimit: "100m"
+    cpuRequest: "100m"
+    memLimit: "64Mi"
     memRequest: "64Mi"
     # ephemeralLimit: "128Mi"
     # ephemeralRequest: "64Mi"
