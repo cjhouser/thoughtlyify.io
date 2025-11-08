@@ -61,11 +61,6 @@ resource "aws_iam_role" "openbao" {
   assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
 }
 
-resource "aws_iam_role_policy_attachment" "openbao" {
-  policy_arn = aws_iam_policy.openbao.arn
-  role       = aws_iam_role.openbao.name
-}
-
 #####################
 ### AUTHORIZATION ###
 #####################
