@@ -23,3 +23,7 @@ data "aws_iam_role" "aws_load_balancer_controller" {
 data "aws_security_group" "eks_platform" {
   id = aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id
 }
+
+data "aws_iam_role" "openbao" {
+  name = "openbao"
+}

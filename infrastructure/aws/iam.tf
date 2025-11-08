@@ -61,6 +61,11 @@ resource "aws_iam_role" "openbao" {
   assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
 }
 
+resource "aws_iam_role_policy_attachment" "openbao" {
+  policy_arn = aws_iam_policy.openbao.arn
+  role       = aws_iam_role.openbao.name
+}
+
 #####################
 ### AUTHORIZATION ###
 #####################
@@ -395,10 +400,30 @@ data "aws_iam_policy_document" "authz_load_balancer_controller" {
   }
 }
 
+data "aws_iam_policy_document" "authz_openbao" {
+  statement {
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+    effect = "Allow"
+    resources = [
+      aws_kms_key.openbao.arn,
+    ]
+  }
+}
+
 resource "aws_iam_policy" "load_balancer_controller" {
   name   = "AWSLoadBalancerController"
   path   = "/"
   policy = data.aws_iam_policy_document.authz_load_balancer_controller.json
+}
+
+resource "aws_iam_policy" "openbao" {
+  name   = "openbao"
+  path   = "/"
+  policy = data.aws_iam_policy_document.authz_openbao.json
 }
 
 ######################
