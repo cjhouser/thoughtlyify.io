@@ -56,6 +56,11 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller" {
   role       = aws_iam_role.load_balancer_controller.name
 }
 
+resource "aws_iam_role" "openbao" {
+  name               = "openbao"
+  assume_role_policy = data.aws_iam_policy_document.authn_pod_identity.json
+}
+
 #####################
 ### AUTHORIZATION ###
 #####################
