@@ -17,3 +17,5 @@ data "aws_iam_policy" "ec2_container_registry_pull_only" {
 data "aws_iam_policy" "eks_cluster_policy" {
   name = "AmazonEKSClusterPolicy"
 }
+
+data "aws_caller_identity" "current" {}

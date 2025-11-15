@@ -112,11 +112,41 @@ resource "kubernetes_service_account_v1" "kube-system_aws-load-balancer-controll
   ]
 }
 
+resource "kubernetes_namespace_v1" "secret-management" {
+  metadata {
+    labels = merge(local.k8s_common_labels, {})
+    name   = "secret-management"
+  }
+
+  depends_on = [
+    aws_eks_access_policy_association.cluster_admins,
+  ]
+}
+
+resource "kubernetes_service_account_v1" "secret-management_openbao" {
+  metadata {
+    labels    = merge(local.k8s_common_labels, {})
+    name      = "openbao"
+    namespace = kubernetes_namespace_v1.secret-management.metadata[0].name
+  }
+
+  depends_on = [
+    aws_eks_access_policy_association.cluster_admins,
+  ]
+}
+
 resource "aws_eks_pod_identity_association" "aws_load_balancer_controller" {
   cluster_name    = aws_eks_cluster.platform.name
   namespace       = "kube-system"
   service_account = kubernetes_service_account_v1.kube-system_aws-load-balancer-controller.metadata[0].name
   role_arn        = data.aws_iam_role.aws_load_balancer_controller.arn
+}
+
+resource "aws_eks_pod_identity_association" "openbao" {
+  cluster_name    = aws_eks_cluster.platform.name
+  namespace       = kubernetes_namespace_v1.secret-management.metadata[0].name
+  service_account = kubernetes_service_account_v1.secret-management_openbao.metadata[0].name
+  role_arn        = data.aws_iam_role.openbao.arn
 }
 
 resource "helm_release" "kube-system_aws-load-balancer-controller" {
@@ -215,14 +245,12 @@ resource "aws_eks_node_group" "persistence" {
 
   subnet_ids = [
     aws_subnet.nodes_a.id,
-    aws_subnet.nodes_b.id,
-    aws_subnet.nodes_c.id
   ]
 
   scaling_config {
     desired_size = 1
-    max_size     = 2
-    min_size     = 1
+    max_size     = 1
+    min_size     = 0
   }
 
   taint {
