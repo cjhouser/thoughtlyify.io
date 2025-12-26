@@ -30,4 +30,20 @@ resource "azurerm_kubernetes_cluster" "platform" {
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   dns_prefix          = "platform" # use dns_prefix to allow external access to k8s api
+
+  default_node_pool {
+    name                    = "platform-nodes"
+    vm_size                 = "b2pls-v2"
+    auto_scaling_enabled    = false
+    host_encryption_enabled = false # revisit this later. skipping it to avoid azure key vault
+    node_public_ip_enabled  = false
+    gpu_driver              = "None"
+    fips_enabled            = false
+    os_disk_size_gb         = 30
+    os_sku                  = "Ubuntu"
+    pod_subnet_id           = 
+    node_labels = {
+      "node-role.kubernetes.io/compute" = "compute"
+    }
+  }
 }
