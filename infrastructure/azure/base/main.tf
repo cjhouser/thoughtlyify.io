@@ -30,8 +30,8 @@ resource "azurerm_virtual_network" "platform" {
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   address_space = [
-    "10.0.0.0/20",
-    "10::/56" # /56 to match AWS VPC auto-generated IPv6 prefix
+    local.ipv4_prefix,
+    local.ipv6_prefix
   ]
 }
 
@@ -40,8 +40,8 @@ resource "azurerm_subnet" "nodes" {
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.platform.name
   address_prefixes = [
-    cidrsubnet(azurerm_virtual_network.platform.address_space[0], 3, 6),
-    cidrsubnet(azurerm_virtual_network.platform.adress_space[1], 8, 6)
+    cidrsubnet(local.ipv4_prefix, 3, 6),
+    cidrsubnet(local.ipv6_prefix, 8, 6)
   ]
 }
 
