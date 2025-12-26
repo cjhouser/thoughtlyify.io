@@ -29,7 +29,7 @@ resource "azurerm_virtual_network" "platform" {
   name                = "platform"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
-  address_space       = [
+  address_space = [
     "10.0.0.0/20",
     "10::/56" # /56 to match AWS VPC auto-generated IPv6 prefix
   ]
@@ -39,6 +39,10 @@ resource "azurerm_subnet" "nodes" {
   name                 = "nodes"
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.platform.name
+  address_prefixes = [
+    cidrsubnet(azurerm_virtual_network.platform.address_space[0], 3, 6),
+    cidrsubnet(azurerm_virtual_network.platform.adress_space[1], 8, 6)
+  ]
 }
 
 resource "azurerm_kubernetes_cluster" "platform" {
@@ -57,7 +61,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
     fips_enabled            = false
     os_disk_size_gb         = 30
     os_sku                  = "Ubuntu"
-    pod_subnet_id           = 
+    pod_subnet_id           = azurerm_subnet.nodes.id
     node_labels = {
       "node-role.kubernetes.io/compute" = "compute"
     }
