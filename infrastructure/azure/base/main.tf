@@ -16,11 +16,11 @@ provider "azurerm" {
   subscription_id = "b41ee6ed-8dd3-422c-84da-405354f1b2cb"
 }
 
-data "azurerm_location" "alpha" {
+data "azurerm_location" "westus2" {
   location = "westus2"
 }
 
-resource "azurerm_resource_group" "staging" {
-  name     = "staging"
-  location = data.azurerm_location.alpha.location
+resource "azurerm_resource_group" "platform" {
+  name     = "platform"
+  location = data.azurerm_location.westus2.location
 }
