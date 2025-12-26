@@ -1,7 +1,7 @@
 Local development environment packaged into a container.
 
 ## To Do
-- Add checksum checks for all tools
+- add checksum checks for all tools
 
 ## Changelog
 ### 10.1
@@ -10,7 +10,7 @@ Local development environment packaged into a container.
 - add opentofu automatic formatting on save settings
 ### 10.0
 - remove `terraform`
-- Rename `opentofu` binary to `tf`
+- rename `opentofu` binary to `tf`
 ### 9.0
 - added `openssl` package
 - added `opentofu`
@@ -24,8 +24,8 @@ Local development environment packaged into a container.
 ### 6.0
 - kubectl now uses kubectl instead of k
 ### 5.0
-- Upgrade go to 1.24
-- Upgrade terraform to 1.12.2
+- upgrade go to 1.24
+- upgrade terraform to 1.12.2
 ### 4.0
 - flyctl is now installed from github, no need for local instance of concourse
 - added kubectl 1.33
@@ -33,14 +33,14 @@ Local development environment packaged into a container.
 ### 3.2
 - fly CLI was not copied over correctly in previous versions
 ### 3.1
-- Add concourse-ci fly CLI
+- add concourse-ci fly CLI
 - golang directory is correctly copied to /usr/local/go/ instead of contents copied into /usr/local/
 ### 2.0
-- Remove alias for tf
-- Rename terraform binary to tf
+- remove alias for tf
+- rename terraform binary to tf
 - terraform now uses amd64 architecture image instead of arm64
     - terraform was slow before. this should fix it
-- Add go1.23.6 to image
+- add go1.23.6 to image
 ### 1.3
 - fix tf (/usr/local/bin/terraform) alias
 ### 1.0
