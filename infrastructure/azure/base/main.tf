@@ -15,3 +15,7 @@ provider "azurerm" {
   tenant_id       = "dc5223e4-6d55-44db-889f-9e039c0b432c"
   subscription_id = "b41ee6ed-8dd3-422c-84da-405354f1b2cb"
 }
+
+data "azurerm_location" "alpha" {
+  location = "westus2"
+}
