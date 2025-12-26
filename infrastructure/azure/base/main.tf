@@ -56,7 +56,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
   }
 
   default_node_pool {
-    name                    = "platform-nodes"
+    name                    = "system"
     vm_size                 = "b2pls-v2"
     auto_scaling_enabled    = false
     host_encryption_enabled = false # revisit this later. skipping it to avoid azure key vault
@@ -67,7 +67,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
     os_sku                  = "Ubuntu"
     pod_subnet_id           = azurerm_subnet.nodes.id
     node_labels = {
-      "node-role.kubernetes.io/compute" = "compute"
+      "node-role.kubernetes.io/system" = "system"
     }
   }
 }
