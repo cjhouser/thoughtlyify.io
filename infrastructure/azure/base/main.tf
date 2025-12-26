@@ -25,6 +25,12 @@ resource "azurerm_resource_group" "platform" {
   location = data.azurerm_location.westus2.location
 }
 
+resource "azurerm_subnet" "nodes" {
+  name                 = "nodes"
+  resource_group_name  = azurerm_resource_group.platform.name
+  virtual_network_name = 
+}
+
 resource "azurerm_kubernetes_cluster" "platform" {
   name                = "platform"
   location            = azurerm_resource_group.platform.location
