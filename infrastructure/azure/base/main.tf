@@ -25,10 +25,20 @@ resource "azurerm_resource_group" "platform" {
   location = data.azurerm_location.westus2.location
 }
 
+resource "azurerm_virtual_network" "platform" {
+  name                = "platform"
+  location            = azurerm_resource_group.platform.location
+  resource_group_name = azurerm_resource_group.platform.name
+  address_space       = [
+    "10.0.0.0/20",
+    "10::/56" # /56 to match AWS VPC auto-generated IPv6 prefix
+  ]
+}
+
 resource "azurerm_subnet" "nodes" {
   name                 = "nodes"
   resource_group_name  = azurerm_resource_group.platform.name
-  virtual_network_name = 
+  virtual_network_name = azurerm_virtual_network.platform.name
 }
 
 resource "azurerm_kubernetes_cluster" "platform" {
