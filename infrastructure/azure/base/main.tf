@@ -51,6 +51,10 @@ resource "azurerm_kubernetes_cluster" "platform" {
   resource_group_name = azurerm_resource_group.platform.name
   dns_prefix          = "platform" # use dns_prefix to allow external access to k8s api
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   default_node_pool {
     name                    = "platform-nodes"
     vm_size                 = "b2pls-v2"
