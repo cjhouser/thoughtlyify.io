@@ -24,3 +24,10 @@ resource "azurerm_resource_group" "platform" {
   name     = "platform"
   location = data.azurerm_location.westus2.location
 }
+
+resource "azurerm_kubernetes_cluster" "platform" {
+  name                = "platform"
+  location            = azurerm_resource_group.platform.location
+  resource_group_name = azurerm_resource_group.platform.name
+  dns_prefix          = "platform" # use dns_prefix to allow external access to k8s api
+}
