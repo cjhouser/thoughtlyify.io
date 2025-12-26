@@ -19,3 +19,8 @@ provider "azurerm" {
 data "azurerm_location" "alpha" {
   location = "westus2"
 }
+
+resource "azurerm_resource_group" "staging" {
+  name     = "staging"
+  location = data.azurerm_location.alpha.location
+}
