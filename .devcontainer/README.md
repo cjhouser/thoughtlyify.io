@@ -4,6 +4,10 @@ Local development environment packaged into a container.
 - Add checksum checks for all tools
 
 ## Changelog
+### 10.1
+- rename `tf` binary to `tofu` to allow opentofu extension to perform automatic formatting on save
+- add `tf` alias for `tofu` binary
+- add opentofu automatic formatting on save settings
 ### 10.0
 - remove `terraform`
 - Rename `opentofu` binary to `tf`

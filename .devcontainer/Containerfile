@@ -33,6 +33,6 @@ COPY --from=flyctl /tmp/flyctl /usr/local/bin/fly
 COPY --from=go /tmp/go/ /usr/local/go/
 COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
 COPY --from=helm /usr/bin/helm /usr/local/bin/helm
-COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tf
+COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
 ENV PATH=${PATH}:/usr/local/go/bin
 RUN apk add --no-cache aws-cli ack openssl

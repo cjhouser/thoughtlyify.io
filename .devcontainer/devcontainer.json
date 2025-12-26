@@ -24,6 +24,7 @@
 		"rebase-alias": "echo 'alias gitr=\"git rebase -i --autosquash main\"' >> ~/.bashrc",
 		"kubectl-alias": "echo 'alias k=kubectl' >> ~/.bashrc",
 		"namespace-alias": "echo 'alias ns=\"kubectl config set-context --current --namespace \"' >> ~/.bashrc",
+		"tofu-alias": "echo 'alias tf=tofu' >> ~/.bashrc",
 		"kubectl-autocompletion": "echo \"source <(kubectl completion bash)\" >> ~/.bashrc",
 		"kubectl-alias-autocompletion": "echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc",
 		"volume-owner": "sudo chown -R $(id -u):$(id -g) /mnt/devvol",
@@ -34,16 +35,22 @@
 
 	// Configure tool-specific properties.
 	"customizations": {
-    "vscode": {
-        "extensions":[
-			"golang.go",
-			"ms-azuretools.vscode-docker",
-			"vmware.vscode-concourse",
-			"opentofu.vscode-opentofu"
-		]
-    }
-}
-
+		"vscode": {
+			"settings": {
+				"[opentofu][opentofu-vars]": {
+					"editor.defaultFormatter": "opentofu.vscode-opentofu",
+					"editor.formatOnSave": true,
+					"editor.formatOnSaveMode": "file"
+				}
+			},
+			"extensions": [
+				"golang.go",
+				"ms-azuretools.vscode-docker",
+				"vmware.vscode-concourse",
+				"opentofu.vscode-opentofu"
+			]
+		}
+	}
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
 }
