@@ -1,9 +1,14 @@
 Local development environment packaged into a container.
 
 ## To Do
-- add checksum checks for all tools
+- add checksum checks
+- add gpg check
 
 ## Changelog
+### 0.11.0
+- switch to semver
+- switch from devcontainer:alpine to debian base
+- add azcli
 ### 10.1
 - rename `tf` binary to `tofu` to allow opentofu extension to perform automatic formatting on save
 - add `tf` alias for `tofu` binary
