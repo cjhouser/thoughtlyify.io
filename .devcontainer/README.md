@@ -5,6 +5,8 @@ Local development environment packaged into a container.
 - add gpg check
 
 ## Changelog
+### 0.11.1
+- path on bash prompt is relative to git work tree root when present working directory is in work tree
 ### 0.11.0
 - switch to semver
 - switch from devcontainer:alpine to debian base
