@@ -5,6 +5,10 @@ Local development environment packaged into a container.
 - add gpg check
 
 ## Changelog
+### 0.11.2
+- add `ssh`
+- remove bashrc appends from postCreateCommand that are built into image
+- ignore stderr and stdout during apt-get step
 ### 0.11.1
 - path on bash prompt is relative to git work tree root when present working directory is in work tree
 ### 0.11.0

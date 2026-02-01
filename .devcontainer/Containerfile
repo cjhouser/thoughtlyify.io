@@ -52,7 +52,7 @@ COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
 COPY --from=helm /tmp/helm /usr/local/bin/helm
 COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
 ENV PATH=${PATH}:/usr/local/go/bin
-RUN apt-get update > /dev/null \
+RUN apt-get update >/dev/null 2>&1 \
     && apt-get install -y --no-install-recommends \
         ack \
         awscli=${AWSCLI_VERSION}-1 \
@@ -61,7 +61,8 @@ RUN apt-get update > /dev/null \
         git \
         less \
         openssl \
+        ssh \
         vim \
-        > /dev/null \
+        >/dev/null 2>&1 \
     && rm -rf /var/lib/apt/lists/*
 COPY .bashrc /root/.bashrc
