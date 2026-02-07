@@ -16,13 +16,13 @@ provider "azurerm" {
   subscription_id = "b41ee6ed-8dd3-422c-84da-405354f1b2cb"
 }
 
-data "azurerm_location" "westus2" {
-  location = "westus2"
+data "azurerm_location" "platform" {
+  location = "centralus"
 }
 
 resource "azurerm_resource_group" "platform" {
   name     = "platform"
-  location = data.azurerm_location.westus2.location
+  location = data.azurerm_location.platform.location
 }
 
 resource "azurerm_virtual_network" "platform" {
@@ -45,6 +45,12 @@ resource "azurerm_subnet" "nodes" {
   ]
 }
 
+resource "azurerm_user_assigned_identity" "platform" {
+  location            = azurerm_resource_group.platform.location
+  name                = "platform"
+  resource_group_name = azurerm_resource_group.platform.name
+}
+
 resource "azurerm_kubernetes_cluster" "platform" {
   name                = "platform"
   location            = azurerm_resource_group.platform.location
@@ -52,22 +58,27 @@ resource "azurerm_kubernetes_cluster" "platform" {
   dns_prefix          = "platform" # use dns_prefix to allow external access to k8s api
 
   identity {
-    type = "SystemAssigned"
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.platform.id
+    ]
   }
 
   default_node_pool {
-    name                    = "system"
-    vm_size                 = "b2pls-v2"
-    auto_scaling_enabled    = false
-    host_encryption_enabled = false # revisit this later. skipping it to avoid azure key vault
-    node_public_ip_enabled  = false
-    gpu_driver              = "None"
-    fips_enabled            = false
-    os_disk_size_gb         = 30
-    os_sku                  = "Ubuntu"
-    pod_subnet_id           = azurerm_subnet.nodes.id
-    node_labels = {
-      "node-role.kubernetes.io/system" = "system"
-    }
+    name           = "system"
+    vm_size        = "Standard_B2pls_v2"
+    vnet_subnet_id = azurerm_subnet.nodes.id
+    node_count     = 1
+  }
+
+  network_profile {
+    dns_service_ip      = "172.20.0.4" # first four addresses are reserved
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    service_cidrs = [
+      "172.20.0.0/16", # match AWS EKS default IPv4 Service prefix
+      "fc00::/108"     # AWS auto-assigns 
+    ]
+    ip_versions = ["IPv4", "IPv6"]
   }
 }

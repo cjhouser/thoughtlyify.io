@@ -8,7 +8,8 @@ resource "aws_eks_cluster" "platform" {
     authentication_mode = "API"
   }
   kubernetes_network_config {
-    ip_family = "ipv6"
+    ip_family         = "ipv6"
+    service_ipv4_cidr = "172.20.0.0/16"
   }
   upgrade_policy {
     support_type = "STANDARD"
