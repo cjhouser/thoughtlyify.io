@@ -17,14 +17,14 @@ source <(kubectl completion bash)
 complete -o default -F __start_kubectl k
 
 # Prompt dir is relative to git root
-parse_git_repo() {
+function prompt {
   if $(git rev-parse --is-inside-work-tree 2>/dev/null); then
     git_root_dir=$(git rev-parse --show-toplevel)
-    echo -e "\e[0;34m$(basename ${git_root_dir})/\e[0;32m$(git rev-parse --show-prefix)"
+    PS1="\[\e[0;34m\]$(basename ${git_root_dir})/\[\e[0;32m\]$(git rev-parse --show-prefix)"
   else
-    echo "${PWD}"
+    PS1="${PWD}"
   fi
+  PS1+="\[\e[33;1m\] $\[\e[m\] "
 }
 
-# Example PS1 with the relative path in a subshell command
-export PS1="\$(parse_git_repo)\e[33;1m $\e[m "
+export PROMPT_COMMAND=prompt
