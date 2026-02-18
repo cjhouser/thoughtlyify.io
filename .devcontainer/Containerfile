@@ -45,24 +45,29 @@ FROM ghcr.io/opentofu/opentofu:1.10-minimal AS tofu
 
 FROM debian:trixie-slim AS final
 ARG AWSCLI_VERSION=2.23.6
-ARG AZCLI_VERSION=2.74.0
+ARG TARGETARCH
+ARG TARGETOS
 COPY --from=flyctl /tmp/flyctl /usr/local/bin/fly
 COPY --from=go /tmp/go/ /usr/local/go/
 COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
 COPY --from=helm /tmp/helm /usr/local/bin/helm
 COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
 ENV PATH=${PATH}:/usr/local/go/bin
-RUN apt-get update >/dev/null 2>&1 \
-    && apt-get install -y --no-install-recommends \
-        ack \
-        awscli=${AWSCLI_VERSION}-1 \
-        azure-cli=${AZCLI_VERSION}-1 \
-        curl \
-        git \
-        less \
-        openssl \
-        ssh \
-        vim \
-        >/dev/null 2>&1 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ack \
+    awscli=${AWSCLI_VERSION}-1 \
+    ca-certificates \
+    curl \
+    git \
+    gnupg \
+    less \
+    openssl \
+    ssh \
+    vim
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+RUN chmod go+r /etc/apt/keyrings/microsoft.gpg
+RUN echo "Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: bookworm\nComponents: main\nArchitectures: ${TARGETARCH}\nSigned-By: /etc/apt/keyrings/microsoft.gpg" | tee /etc/apt/sources.list.d/azure-cli.sources
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    azure-cli
 COPY .bashrc /root/.bashrc

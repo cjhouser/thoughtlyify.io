@@ -3,7 +3,7 @@
 {
 	"name": "devenv",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "devenv:0.11.3",
+	"image": "devenv:0.11.4",
 	"mounts": [
 		"type=volume,source=devvol,destination=/mnt/devvol,ro=false"
 	],

@@ -5,6 +5,8 @@ Local development environment packaged into a container.
 - add gpg check
 
 ## Changelog
+### 0.11.4
+- install latest azure-cli
 ### 0.11.3
 - fix custom prompt wrapping due to non-printable characters
 ### 0.11.2
