@@ -17,7 +17,7 @@ source <(kubectl completion bash)
 complete -o default -F __start_kubectl k
 
 # Prompt dir is relative to git root
-function prompt {
+prompt () {
   if $(git rev-parse --is-inside-work-tree 2>/dev/null); then
     git_root_dir=$(git rev-parse --show-toplevel)
     PS1="\[\e[0;34m\]$(basename ${git_root_dir})/\[\e[0;32m\]$(git rev-parse --show-prefix)"
@@ -25,6 +25,14 @@ function prompt {
     PS1="${PWD}"
   fi
   PS1+="\[\e[33;1m\] $\[\e[m\] "
+}
+
+plan () {
+  tofu plan -out=plan -var-file=/mnt/devvol/persistent/$(git rev-parse --show-prefix)/secrets.tfvars
+}
+
+apply () {
+  tofu apply plan
 }
 
 export PROMPT_COMMAND=prompt
