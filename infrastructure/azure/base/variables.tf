@@ -1,4 +1,4 @@
-locals {
-  ipv4_prefix = "10.0.0.0/20"
-  ipv6_prefix = "10::/56"
+variable "engineering_subscription_id" {
+  type      = string
+  sensitive = true
 }

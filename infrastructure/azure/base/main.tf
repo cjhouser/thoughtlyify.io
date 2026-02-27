@@ -11,18 +11,21 @@ terraform {
 provider "azurerm" {
   features {}
 
-  client_id       = "15b50407-9822-4201-a5cd-2829f80f0e98"
-  tenant_id       = "dc5223e4-6d55-44db-889f-9e039c0b432c"
-  subscription_id = "b41ee6ed-8dd3-422c-84da-405354f1b2cb"
+  use_cli         = true
+  subscription_id = var.engineering_subscription_id
 }
 
-data "azurerm_location" "platform" {
+locals {
+  ipv4_prefix = "10.0.0.0/20"
+}
+
+data "azurerm_location" "centralus" {
   location = "centralus"
 }
 
 resource "azurerm_resource_group" "platform" {
   name     = "platform"
-  location = data.azurerm_location.platform.location
+  location = data.azurerm_location.centralus.location
 }
 
 resource "azurerm_virtual_network" "platform" {
@@ -30,8 +33,7 @@ resource "azurerm_virtual_network" "platform" {
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   address_space = [
-    local.ipv4_prefix,
-    local.ipv6_prefix
+    local.ipv4_prefix
   ]
 }
 
@@ -40,8 +42,7 @@ resource "azurerm_subnet" "nodes" {
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.platform.name
   address_prefixes = [
-    cidrsubnet(local.ipv4_prefix, 3, 6),
-    cidrsubnet(local.ipv6_prefix, 8, 6)
+    cidrsubnet(local.ipv4_prefix, 3, 6)
   ]
 }
 
@@ -57,6 +58,12 @@ resource "azurerm_kubernetes_cluster" "platform" {
   resource_group_name = azurerm_resource_group.platform.name
   dns_prefix          = "platform" # use dns_prefix to allow external access to k8s api
 
+  api_server_access_profile {
+    authorized_ip_ranges = [
+      "73.93.82.208/32"
+    ]
+  }
+
   identity {
     type = "UserAssigned"
     identity_ids = [
@@ -66,7 +73,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
 
   default_node_pool {
     name           = "system"
-    vm_size        = "Standard_B2pls_v2"
+    vm_size        = "Standard_D2pls_v6"
     vnet_subnet_id = azurerm_subnet.nodes.id
     node_count     = 1
   }
@@ -77,8 +84,9 @@ resource "azurerm_kubernetes_cluster" "platform" {
     network_plugin_mode = "overlay"
     service_cidrs = [
       "172.20.0.0/16", # match AWS EKS default IPv4 Service prefix
-      "fc00::/108"     # AWS auto-assigns 
     ]
-    ip_versions = ["IPv4", "IPv6"]
+    ip_versions = [
+      "IPv4"
+    ]
   }
 }
