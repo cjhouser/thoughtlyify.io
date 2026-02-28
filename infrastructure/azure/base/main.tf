@@ -79,6 +79,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
     temporary_name_for_rotation = "rotation"
     vm_size                     = "Standard_D2pds_v6"
     vnet_subnet_id              = azurerm_subnet.nodes.id
+    max_pods                    = 110
     node_count                  = 1
     #os_disk_type               = "Ephemeral" https://github.com/Azure/AKS/issues/5568
     #host_encrpytion_enabled = true # enable when Ephemeral os_disk_type is enabled
