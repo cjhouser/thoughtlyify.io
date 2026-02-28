@@ -73,8 +73,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
 
   default_node_pool {
     name                        = "system"
-    os_disk_type                = "Ephemeral"
-    os_disk_size_gb             = 30
+    os_disk_size_gb             = 110 # NVMe is 55gb*vcpu https://learn.microsoft.com/en-us/azure/virtual-machines/ephemeral-os-disks#size-requirements
     temporary_name_for_rotation = "rotation"
     vm_size                     = "Standard_D2pds_v6"
     vnet_subnet_id              = azurerm_subnet.nodes.id
