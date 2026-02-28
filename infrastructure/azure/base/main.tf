@@ -72,6 +72,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
   }
 
   default_node_pool {
+    fips_enabled                = false
     gpu_driver                  = "None"
     name                        = "system"
     os_disk_size_gb             = 110 # NVMe is 55gb*vcpu https://learn.microsoft.com/en-us/azure/virtual-machines/ephemeral-os-disks#size-requirements
