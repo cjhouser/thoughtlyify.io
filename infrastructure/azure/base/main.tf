@@ -80,6 +80,11 @@ resource "azurerm_kubernetes_cluster" "platform" {
     node_count                  = 1
     #os_disk_type               = "Ephemeral" https://github.com/Azure/AKS/issues/5568
     #host_encrpytion_enabled = true # enable when Ephemeral os_disk_type is enabled
+
+    kubelet_config {
+      container_log_max_line    = 2
+      container_log_max_size_mb = 10
+    }
   }
 
   network_profile {
