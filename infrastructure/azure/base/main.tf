@@ -83,6 +83,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
     #host_encrpytion_enabled = true # enable when Ephemeral os_disk_type is enabled
 
     kubelet_config {
+      allowed_unsafe_sysctls    = []
       container_log_max_line    = 2
       container_log_max_size_mb = 10
     }
