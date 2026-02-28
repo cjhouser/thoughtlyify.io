@@ -91,6 +91,11 @@ resource "azurerm_kubernetes_cluster" "platform" {
       container_log_max_line    = 2
       container_log_max_size_mb = 10
     }
+
+    upgrade_settings {
+      # Consider VM size quotas and available IP addresses when setting max surge
+      max_surge = "10%"
+    }
   }
 
   network_profile {
