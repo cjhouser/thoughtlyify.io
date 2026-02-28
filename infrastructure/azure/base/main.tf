@@ -82,6 +82,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
     node_count                  = 1
     #os_disk_type               = "Ephemeral" https://github.com/Azure/AKS/issues/5568
     #host_encrpytion_enabled = true # enable when Ephemeral os_disk_type is enabled
+    #kubelet_disk_type           = "Temporary" # preview feature. enable it when it reaches GA
 
     kubelet_config {
       allowed_unsafe_sysctls    = []
