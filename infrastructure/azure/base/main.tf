@@ -94,7 +94,8 @@ resource "azurerm_kubernetes_cluster" "platform" {
 
     upgrade_settings {
       # Consider VM size quotas and available IP addresses when setting max surge
-      max_surge = "10%"
+      max_surge                = "10%"
+      drain_timeout_in_minutes = 5
     }
   }
 
