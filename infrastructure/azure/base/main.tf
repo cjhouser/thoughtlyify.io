@@ -76,6 +76,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
     gpu_driver                  = "None"
     name                        = "system"
     os_disk_size_gb             = 110 # NVMe is 55gb*vcpu https://learn.microsoft.com/en-us/azure/virtual-machines/ephemeral-os-disks#size-requirements
+    os_sku                      = "Ubuntu"
     temporary_name_for_rotation = "rotation"
     vm_size                     = "Standard_D2pds_v6"
     vnet_subnet_id              = azurerm_subnet.nodes.id
