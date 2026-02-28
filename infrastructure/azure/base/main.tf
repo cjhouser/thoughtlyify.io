@@ -52,6 +52,18 @@ resource "azurerm_user_assigned_identity" "platform" {
   resource_group_name = azurerm_resource_group.platform.name
 }
 
+resource "azurerm_user_assigned_identity" "platform_kubelet" {
+  location            = azurerm_resource_group.platform.location
+  name                = "platform-kubelet"
+  resource_group_name = azurerm_resource_group.platform.name
+}
+
+resource "azurerm_role_assignment" "platform_kubelet_mio" {
+  scope                = azurerm_user_assigned_identity.platform_kubelet.id
+  role_definition_name = "Managed Identity Operator"
+  principal_id         = azurerm_user_assigned_identity.platform.principal_id
+}
+
 resource "azurerm_kubernetes_cluster" "platform" {
   name                = "platform"
   location            = azurerm_resource_group.platform.location
@@ -97,6 +109,12 @@ resource "azurerm_kubernetes_cluster" "platform" {
       max_surge                = "10%"
       drain_timeout_in_minutes = 5
     }
+  }
+
+  kubelet_identity {
+    client_id                 = azurerm_user_assigned_identity.platform_kubelet.client_id
+    object_id                 = azurerm_user_assigned_identity.platform_kubelet.principal_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.platform_kubelet.id
   }
 
   network_profile {
