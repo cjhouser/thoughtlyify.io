@@ -28,7 +28,11 @@ prompt () {
 }
 
 plan () {
-  tofu plan -out=plan -var-file=/mnt/devvol/persistent/$(git rev-parse --show-prefix)/secrets.tfvars
+  SECRETS="/mnt/devvol/persistent/$(git rev-parse --show-prefix)/secrets.tfvars"
+  if [[ -e "${SECRETS}" ]]; then
+    VARS="-var-file=${SECRETS}"
+  fi
+  tofu plan -out=plan ${VARS}
 }
 
 apply () {
