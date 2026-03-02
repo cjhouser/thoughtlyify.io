@@ -128,4 +128,11 @@ resource "azurerm_kubernetes_cluster" "platform" {
       "IPv4"
     ]
   }
+
+  storage_profile {
+    blob_driver_enabled         = false
+    disk_driver_enabled         = true
+    file_driver_enabled         = false
+    snapshot_controller_enabled = true
+  }
 }
