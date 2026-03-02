@@ -1,0 +1,42 @@
+crds:
+  enabled: true
+
+global:
+  leaderElection:
+    namespace: "certificates"
+
+webhook:
+  resources:
+    limits:
+      memory: 64Mi
+    requests:
+      cpu: 80m
+      memory: 64Mi
+
+namespace: "certificates"
+
+resources:
+  limits:
+    memory: 64Mi
+  requests:
+    cpu: 80m
+    memory: 64Mi
+
+cainjector:
+  resources:
+    limits:
+      memory: 64Mi
+    requests:
+      cpu: 80m
+      memory: 64Mi
+
+prometheus:
+  enabled: false
+
+startupapicheck:
+  resources:
+    limits:
+      memory: 64Mi
+    requests:
+      cpu: 80m
+      memory: 64Mi
