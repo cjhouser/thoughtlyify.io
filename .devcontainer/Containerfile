@@ -58,6 +58,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     awscli=${AWSCLI_VERSION}-1 \
     ca-certificates \
     curl \
+    dnsutils \
     git \
     gnupg \
     less \

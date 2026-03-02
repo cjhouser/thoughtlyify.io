@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `plan` and `apply` functions to quickly run through the terraform workflow
 - changelog uses Keep a Changelog standard
+- `dnsutils` via apt
 
 ## 0.11.4
 ### Added
