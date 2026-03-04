@@ -41,17 +41,20 @@ RUN wget -q -O tarball https://get.helm.sh/helm-v${VERSION}-${TARGETOS}-${TARGET
 RUN tar -xzf tarball
 RUN mv ${TARGETOS}-${TARGETARCH}/helm /tmp/helm
 
+FROM build as linkerd
+ARG VERSION=edge-26.1.1
+ARG TARGETARCH
+ARG TARGETOS
+WORKDIR /tmp
+RUN wget -q -O linkerd https://github.com/linkerd/linkerd2/releases/download/${VERSION}/linkerd2-cli-${VERSION}-${TARGETOS}-${TARGETARCH}
+RUN chmod +x linkerd
+
 FROM ghcr.io/opentofu/opentofu:1.10-minimal AS tofu
 
 FROM debian:trixie-slim AS final
 ARG AWSCLI_VERSION=2.23.6
 ARG TARGETARCH
 ARG TARGETOS
-COPY --from=flyctl /tmp/flyctl /usr/local/bin/fly
-COPY --from=go /tmp/go/ /usr/local/go/
-COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
-COPY --from=helm /tmp/helm /usr/local/bin/helm
-COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
 ENV PATH=${PATH}:/usr/local/go/bin
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ack \
@@ -65,6 +68,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     ssh \
     vim
+COPY --from=flyctl /tmp/flyctl /usr/local/bin/fly
+COPY --from=go /tmp/go/ /usr/local/go/
+COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
+COPY --from=helm /tmp/helm /usr/local/bin/helm
+COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
+COPY --from=linkerd /tmp/linkerd /usr/local/bin/linkerd
 RUN mkdir -p /etc/apt/keyrings
 RUN curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null
 RUN chmod go+r /etc/apt/keyrings/microsoft.gpg
