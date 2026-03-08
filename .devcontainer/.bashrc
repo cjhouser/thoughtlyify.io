@@ -1,3 +1,5 @@
+source /etc/bash_completion
+
 # colorized pager
 export PAGER=less
 

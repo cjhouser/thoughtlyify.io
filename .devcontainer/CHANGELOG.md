@@ -4,8 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.13.1
+### Fixed
+- install bash-completion via apt to fix kubectl autocomplete
+- docs: version 0.13.0 in CHANGELOG was not using Keep a Changelog format
+
 ## 0.13.0
-- add linkerd cli
+### Added
+- linkerd cli
 
 ## 0.12.0
 ### Added

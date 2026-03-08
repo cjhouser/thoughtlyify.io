@@ -59,6 +59,7 @@ ENV PATH=${PATH}:/usr/local/go/bin
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ack \
     awscli=${AWSCLI_VERSION}-1 \
+    bash-completion \
     ca-certificates \
     curl \
     dnsutils \
