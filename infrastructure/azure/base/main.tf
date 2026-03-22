@@ -140,11 +140,14 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
   }
 
   network_profile {
-    dns_service_ip      = "172.20.0.4" # first four addresses are reserved
+    dns_service_ip      = "172.24.0.4"
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
+    pod_cidrs = [
+      "172.16.0.0/18",
+    ]
     service_cidrs = [
-      "172.20.0.0/16", # match AWS EKS default IPv4 Service prefix
+      "172.24.0.0/18",
     ]
     ip_versions = [
       "IPv4"
