@@ -58,8 +58,8 @@ resource "azurerm_virtual_network" "platform_a" {
   ]
 }
 
-resource "azurerm_subnet" "nodes" {
-  name                 = "nodes"
+resource "azurerm_subnet" "platform_a_nodes" {
+  name                 = "platform_a_nodes"
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.platform_a.name
   address_prefixes = [
@@ -112,7 +112,7 @@ resource "azurerm_kubernetes_cluster" "platform" {
     os_sku                      = "Ubuntu"
     temporary_name_for_rotation = "rotation"
     vm_size                     = "Standard_D2pds_v6"
-    vnet_subnet_id              = azurerm_subnet.nodes.id
+    vnet_subnet_id              = azurerm_subnet.platform_a_nodes.id
     max_pods                    = 110
     node_count                  = 1
     #os_disk_type               = "Ephemeral" https://github.com/Azure/AKS/issues/5568
