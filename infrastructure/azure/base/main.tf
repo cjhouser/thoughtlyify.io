@@ -162,6 +162,7 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
     dns_service_ip      = "172.24.0.4"
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
+    outbound_type       = "userDefinedRouting"
     pod_cidrs = [
       "172.16.0.0/18",
     ]
