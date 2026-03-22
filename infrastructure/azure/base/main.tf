@@ -85,11 +85,11 @@ resource "azurerm_role_assignment" "platform_kubelet_mio" {
   principal_id         = azurerm_user_assigned_identity.platform.principal_id
 }
 
-resource "azurerm_kubernetes_cluster" "platform" {
-  name                = "platform"
+resource "azurerm_kubernetes_cluster" "platform_a" {
+  name                = "platform_a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
-  dns_prefix          = "platform" # use dns_prefix to allow external access to k8s api
+  dns_prefix          = "platform-a" # use dns_prefix to allow external access to k8s api
 
   api_server_access_profile {
     authorized_ip_ranges = [
