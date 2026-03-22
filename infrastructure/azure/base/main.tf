@@ -77,9 +77,10 @@ resource "azurerm_virtual_network" "platform_a" {
 }
 
 resource "azurerm_subnet" "platform_a_nodes" {
-  name                 = "platform_a_nodes"
-  resource_group_name  = azurerm_resource_group.platform.name
-  virtual_network_name = azurerm_virtual_network.platform_a.name
+  name                            = "platform_a_nodes"
+  default_outbound_access_enabled = false
+  resource_group_name             = azurerm_resource_group.platform.name
+  virtual_network_name            = azurerm_virtual_network.platform_a.name
   address_prefixes = [
     cidrsubnet(local.platform_vnet_a, 4, 0)
   ]
