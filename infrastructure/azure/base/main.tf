@@ -75,7 +75,7 @@ resource "azurerm_user_assigned_identity" "platform" {
 
 resource "azurerm_user_assigned_identity" "platform_kubelet" {
   location            = azurerm_resource_group.platform.location
-  name                = "platform-kubelet"
+  name                = "platform_kubelet"
   resource_group_name = azurerm_resource_group.platform.name
 }
 
