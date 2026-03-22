@@ -76,8 +76,8 @@ resource "azurerm_virtual_network" "platform_a" {
   ]
 }
 
-resource "azurerm_subnet" "platform_a_nodes" {
-  name                            = "platform_a_nodes"
+resource "azurerm_subnet" "nodes_platform_a" {
+  name                            = "nodes_platform_a"
   default_outbound_access_enabled = false
   resource_group_name             = azurerm_resource_group.platform.name
   virtual_network_name            = azurerm_virtual_network.platform_a.name
@@ -132,7 +132,7 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
     os_sku                      = "Ubuntu"
     temporary_name_for_rotation = "rotation"
     vm_size                     = "Standard_D2pds_v6"
-    vnet_subnet_id              = azurerm_subnet.platform_a_nodes.id
+    vnet_subnet_id              = azurerm_subnet.nodes_platform_a.id
     max_pods                    = 110
     node_count                  = 1
     os_disk_type                = "Ephemeral"
