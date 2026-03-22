@@ -116,8 +116,8 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
     vnet_subnet_id              = azurerm_subnet.platform_a_nodes.id
     max_pods                    = 110
     node_count                  = 1
-    #os_disk_type               = "Ephemeral" https://github.com/Azure/AKS/issues/5568
-    #host_encrpytion_enabled = true # enable when Ephemeral os_disk_type is enabled
+    os_disk_type                = "Ephemeral"
+    host_encryption_enabled     = true
     #kubelet_disk_type           = "Temporary" # preview feature. enable it when it reaches GA
 
     kubelet_config {
