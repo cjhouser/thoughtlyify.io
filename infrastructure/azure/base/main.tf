@@ -156,4 +156,8 @@ resource "azurerm_kubernetes_cluster" "platform" {
     file_driver_enabled         = false
     snapshot_controller_enabled = true
   }
+
+  depends_on = [
+    azurerm_role_assignment.platform_kubelet_mio
+  ]
 }
