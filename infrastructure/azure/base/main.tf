@@ -86,6 +86,22 @@ resource "azurerm_subnet" "nodes_platform_a" {
   ]
 }
 
+resource "azurerm_virtual_network_peering" "hub_a_to_platform_a" {
+  name                      = "hub_a_to_platform_a"
+  resource_group_name       = azurerm_resource_group.platform.name
+  virtual_network_name      = azurerm_virtual_network.hub_a.name
+  remote_virtual_network_id = azurerm_virtual_network.platform_a.id
+  allow_forwarded_traffic   = true
+}
+
+resource "azurerm_virtual_network_peering" "platform_a_to_hub_a" {
+  name                      = "platform_a_to_hub_a"
+  resource_group_name       = azurerm_resource_group.platform.name
+  virtual_network_name      = azurerm_virtual_network.platform_a.name
+  remote_virtual_network_id = azurerm_virtual_network.hub_a.id
+  allow_forwarded_traffic   = true
+}
+
 resource "azurerm_user_assigned_identity" "platform" {
   location            = azurerm_resource_group.platform.location
   name                = "platform"
