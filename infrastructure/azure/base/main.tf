@@ -49,8 +49,8 @@ resource "azurerm_resource_group" "platform" {
   location = data.azurerm_location.centralus.location
 }
 
-resource "azurerm_virtual_network" "platform" {
-  name                = "platform"
+resource "azurerm_virtual_network" "platform_a" {
+  name                = "platform_a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   address_space = [
@@ -61,7 +61,7 @@ resource "azurerm_virtual_network" "platform" {
 resource "azurerm_subnet" "nodes" {
   name                 = "nodes"
   resource_group_name  = azurerm_resource_group.platform.name
-  virtual_network_name = azurerm_virtual_network.platform.name
+  virtual_network_name = azurerm_virtual_network.platform_a.name
   address_prefixes = [
     cidrsubnet(local.platform_vnet_a, 4, 0)
   ]
