@@ -23,8 +23,3 @@ resource "azurerm_resource_group" "platform" {
   name     = "platform"
   location = data.azurerm_location.centralus.location
 }
-resource "azurerm_subnet_nat_gateway_association" "pubic_hub_a_egress_a" {
-  subnet_id      = azurerm_subnet.public_hub_a.id
-  nat_gateway_id = azurerm_nat_gateway.egress_a.id
-}
-
