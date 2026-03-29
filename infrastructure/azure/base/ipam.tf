@@ -1,24 +1,23 @@
 locals {
-  # |CLASS            |NET |SUB |HOST
+  # [C]lass [N]etwork [S]ubnet [H]ost
+  # CCCCCCCC.CCCCCCCC.NNNNNSSS.HHHHHHHH
   # 11000000.10101000.00000000.00000000
   #
-  # 5 bits NET  = 32 VNETs. 16 pairs for regional redundancy.
-  # 4 bits SUB  = 16 subnets/vnet
-  # 7 bits HOST = 128 hosts/subnet
+  # 5 bits NET  =  32 vnets. 16 pairs for regional redundancy
+  # 3 bits SUB  =   8 subnets per vnet
+  # 8 bits HOST = 251 usable host addresses per subnet
   #
-  # Region A: 192.168.0.0   - 192.168.127.255 = cidrsubnet(5,  0-15)
-  # Region B: 192.168.128.0 - 192.168.255.255 = cidrsubnet(5, 16-31)
+  # Region A: 192.168.0.0/21   - 192.168.120.0/21 = cidrsubnet("192.168.0.0/16", 5, 0-15)
+  # Region B: 192.168.128.0/21 - 192.168.248.0/21 = cidrsubnet("192.168.0.0/16", 5, 16-31)
   network_class = "192.168.0.0/16"
 
-  # non-k8s vnet provisioned from the lower range
-  hub_vnet_a = cidrsubnet(local.network_class, 5, 0)
-  hub_vnet_b = cidrsubnet(local.network_class, 5, 16)
+  # vnet naming: {vnet}_network_{region}
+  hub_network_a      = cidrsubnet(local.network_class, 5, 0)
+  platform_network_a = cidrsubnet(local.network_class, 5, 15)
 
-  # k8s vnets are provisioned from the higher range
-  platform_vnet_a = cidrsubnet(local.network_class, 5, 15)
-  platform_vnet_b = cidrsubnet(local.network_class, 5, 31)
-  prod_vnet_a     = cidrsubnet(local.network_class, 5, 14)
-  prod_vnet_b     = cidrsubnet(local.network_class, 5, 30)
-  nonprod_vnet_a  = cidrsubnet(local.network_class, 5, 13)
-  nonprod_vnet_b  = cidrsubnet(local.network_class, 5, 29)
+  # subnet naming: {subnet}_{vnet}_network_{region}
+  egress_hub_network_a  = cidrsubnet(local.hub_network_a, 3, 0)
+  bastion_hub_network_a = cidrsubnet(local.hub_network_a, 3, 1)
+
+  nodes_platform_network_a = cidrsubnet(local.platform_network_a, 3, 0)
 }
