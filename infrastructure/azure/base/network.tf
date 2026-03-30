@@ -52,10 +52,6 @@ resource "azurerm_subnet_nat_gateway_association" "egress_a_egress_hub_a" {
   nat_gateway_id = azurerm_nat_gateway.egress_a.id
 }
 
-resource "azurerm_subnet_network_security_group_association" "egress_hub_a" {
-  subnet_id                 = azurerm_subnet.egress_hub_a.id
-  network_security_group_id = azurerm_network_security_group.nva_a.id
-}
 
 resource "azurerm_subnet" "bastion_hub_a" {
   name                 = "bastion-hub-a"
@@ -123,55 +119,25 @@ resource "azurerm_virtual_network_peering" "platform_a_to_hub_a" {
 ###############
 ### routing ###
 ###############
-resource "azurerm_route_table" "spoke" {
-  name                = "spoke"
+resource "azurerm_route_table" "nva_private_hub_a" {
+  name                = "nva-private-hub-a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
 }
 
-resource "azurerm_route" "to_hub" {
-  name                   = "to_hub"
+resource "azurerm_route" "nva-private-hub-a" {
+  name                   = "nva-private-hub-a"
   resource_group_name    = azurerm_resource_group.platform.name
-  route_table_name       = azurerm_route_table.spoke.name
+  route_table_name       = azurerm_route_table.nva_private_hub_a.name
   address_prefix         = "0.0.0.0/0"
   next_hop_type          = "VirtualAppliance"
-  next_hop_in_ip_address = azurerm_network_interface.nva_a.private_ip_address
+  next_hop_in_ip_address = azurerm_network_interface.nva_private_hub_a.private_ip_address
 }
 
 
 ###############################
 ### network security groups ###
 ###############################
-resource "azurerm_network_security_group" "nva_a" {
-  name                = "nva_a"
-  location            = azurerm_resource_group.platform.location
-  resource_group_name = azurerm_resource_group.platform.name
-
-  security_rule {
-    name                       = "https"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = local.platform_network_a
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "ssh"
-    priority                   = 101
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = local.bastion_hub_network_a
-    destination_address_prefix = "*"
-  }
-}
-
 resource "azurerm_network_security_group" "bastion_a" {
   name                = "bastion-a"
   location            = azurerm_resource_group.platform.location

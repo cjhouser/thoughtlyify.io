@@ -104,11 +104,6 @@ resource "azurerm_network_interface" "nva_a" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "nva_egress_hub_a" {
-  network_interface_id      = azurerm_network_interface.nva_a.id
-  network_security_group_id = azurerm_network_security_group.nva_a.id
-}
-
 # simulate an NVA so i don't have to pay for azure firewall
 resource "azurerm_linux_virtual_machine" "nva_a" {
   name                            = "nva-a"
