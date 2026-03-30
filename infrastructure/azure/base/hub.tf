@@ -123,7 +123,7 @@ resource "azurerm_linux_virtual_machine" "nva_a" {
   location                        = azurerm_resource_group.platform.location
   size                            = "Standard_D2pds_v6"
   encryption_at_host_enabled      = true
-  admin_username                  = "nva_admin"
+  admin_username                  = "nva"
   admin_password                  = var.admin_password_nva_a
   disable_password_authentication = false
   custom_data                     = base64encode(file("${path.root}/static/nva-cloud-config.yaml"))
