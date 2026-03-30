@@ -89,17 +89,30 @@ resource "azurerm_nat_gateway_public_ip_association" "egress_a_egress_a" {
   public_ip_address_id = azurerm_public_ip.egress_a.id
 }
 
-resource "azurerm_network_interface" "nva_a" {
-  name                  = "nva_a"
+resource "azurerm_network_interface" "nva_private_hub_a" {
+  name                = "nva-private-hub-a"
+  location            = azurerm_resource_group.platform.location
+  resource_group_name = azurerm_resource_group.platform.name
+
+  ip_configuration {
+    name                          = "nva-private-hub-a"
+    subnet_id                     = azurerm_subnet.private_hub_a.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = local.nva_private_hub_network_a
+  }
+}
+
+resource "azurerm_network_interface" "nva_public_hub_a" {
+  name                  = "nva-public-hub-a"
   location              = azurerm_resource_group.platform.location
   resource_group_name   = azurerm_resource_group.platform.name
   ip_forwarding_enabled = true
 
   ip_configuration {
-    name                          = "nva_a"
-    subnet_id                     = azurerm_subnet.egress_hub_a.id
+    name                          = "nva-public-hub-a"
+    subnet_id                     = azurerm_subnet.public_hub_a.id
     private_ip_address_allocation = "Static"
-    private_ip_address            = local.nva_egress_hub_network_a
+    private_ip_address            = local.nva_public_hub_network_a
     primary                       = true
   }
 }
@@ -116,7 +129,8 @@ resource "azurerm_linux_virtual_machine" "nva_a" {
   disable_password_authentication = false
   custom_data                     = base64encode(file("${path.root}/static/nva-cloud-config.yaml"))
   network_interface_ids = [
-    azurerm_network_interface.nva_a.id,
+    azurerm_network_interface.nva_public_hub_a.id,
+    azurerm_network_interface.nva_private_hub_a.id,
   ]
 
   os_disk {

@@ -16,8 +16,11 @@ locals {
   platform_network_a = cidrsubnet(local.network_class, 5, 15)
 
   # subnet naming: {subnet}_{vnet}_network_{region}
-  egress_hub_network_a     = cidrsubnet(local.hub_network_a, 3, 0)
-  nva_egress_hub_network_a = cidrhost(local.egress_hub_network_a, 4)
+  private_hub_network_a     = cidrsubnet(local.hub_network_a, 3, 0)
+  nva_private_hub_network_a = cidrhost(local.private_hub_network_a, 4)
+
+  public_hub_network_a     = cidrsubnet(local.hub_network_a, 3, 7)
+  nva_public_hub_network_a = cidrhost(local.public_hub_network_a, 4)
 
   bastion_hub_network_a         = cidrsubnet(local.hub_network_a, 3, 1)
   bastion_bastion_hub_network_a = cidrhost(local.bastion_hub_network_a, 4)
@@ -38,18 +41,27 @@ resource "azurerm_virtual_network" "hub_a" {
   ]
 }
 
-resource "azurerm_subnet" "egress_hub_a" {
-  name                 = "egress_hub_a"
+resource "azurerm_subnet" "public_hub_a" {
+  name                 = "public-hub-a"
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.hub_a.name
   address_prefixes = [
-    local.egress_hub_network_a
+    local.public_hub_network_a
   ]
 }
 
 resource "azurerm_subnet_nat_gateway_association" "egress_a_egress_hub_a" {
-  subnet_id      = azurerm_subnet.egress_hub_a.id
+  subnet_id      = azurerm_subnet.public_hub_a.id
   nat_gateway_id = azurerm_nat_gateway.egress_a.id
+}
+
+resource "azurerm_subnet" "private_hub_a" {
+  name                 = "private-hub-a"
+  resource_group_name  = azurerm_resource_group.platform.name
+  virtual_network_name = azurerm_virtual_network.hub_a.name
+  address_prefixes = [
+    local.private_hub_network_a
+  ]
 }
 
 
