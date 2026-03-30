@@ -67,14 +67,14 @@ resource "azurerm_linux_virtual_machine" "bastion_a" {
 ### egress ###
 ##############
 resource "azurerm_nat_gateway" "egress_a" {
-  name                = "egress_a"
+  name                = "egress-a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   zones               = ["1"]
 }
 
 resource "azurerm_public_ip" "egress_a" {
-  name                    = "egress_a"
+  name                    = "egress-a"
   location                = azurerm_resource_group.platform.location
   resource_group_name     = azurerm_resource_group.platform.name
   allocation_method       = "Static"

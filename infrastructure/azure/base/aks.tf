@@ -6,7 +6,7 @@ resource "azurerm_user_assigned_identity" "platform" {
 
 resource "azurerm_user_assigned_identity" "platform_kubelet" {
   location            = azurerm_resource_group.platform.location
-  name                = "platform_kubelet"
+  name                = "platform-kubelet"
   resource_group_name = azurerm_resource_group.platform.name
 }
 
@@ -17,7 +17,7 @@ resource "azurerm_role_assignment" "platform_kubelet_mio" {
 }
 /*
 resource "azurerm_kubernetes_cluster" "platform_a" {
-  name                = "platform_a"
+  name                = "platform-a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   dns_prefix          = "platform-a" # use dns_prefix to allow external access to k8s api

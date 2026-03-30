@@ -33,7 +33,7 @@ locals {
 ### hub_a ###
 #############
 resource "azurerm_virtual_network" "hub_a" {
-  name                = "hub_a"
+  name                = "hub-a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   address_space = [
@@ -88,7 +88,7 @@ resource "azurerm_subnet_network_security_group_association" "bastion_hub_a" {
 ### platform_a ###
 ##################
 resource "azurerm_virtual_network" "platform_a" {
-  name                = "platform_a"
+  name                = "platform-a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   address_space = [
@@ -97,7 +97,7 @@ resource "azurerm_virtual_network" "platform_a" {
 }
 
 resource "azurerm_subnet" "nodes_platform_a" {
-  name                            = "nodes_platform_a"
+  name                            = "nodes-platform-a"
   default_outbound_access_enabled = false
   resource_group_name             = azurerm_resource_group.platform.name
   virtual_network_name            = azurerm_virtual_network.platform_a.name
@@ -116,7 +116,7 @@ resource "azurerm_subnet_route_table_association" "nodes_platform_a" {
 ### peering ###
 ###############
 resource "azurerm_virtual_network_peering" "hub_a_to_platform_a" {
-  name                      = "hub_a_to_platform_a"
+  name                      = "hub-a-to-platform_a"
   resource_group_name       = azurerm_resource_group.platform.name
   virtual_network_name      = azurerm_virtual_network.hub_a.name
   remote_virtual_network_id = azurerm_virtual_network.platform_a.id
@@ -124,7 +124,7 @@ resource "azurerm_virtual_network_peering" "hub_a_to_platform_a" {
 }
 
 resource "azurerm_virtual_network_peering" "platform_a_to_hub_a" {
-  name                      = "platform_a_to_hub_a"
+  name                      = "platform-a-to-hub-a"
   resource_group_name       = azurerm_resource_group.platform.name
   virtual_network_name      = azurerm_virtual_network.platform_a.name
   remote_virtual_network_id = azurerm_virtual_network.hub_a.id
@@ -160,7 +160,7 @@ resource "azurerm_network_security_group" "bastion_a" {
   resource_group_name = azurerm_resource_group.platform.name
 
   security_rule {
-    name                       = "ssh_from_admin_a"
+    name                       = "ssh-from-admin-a"
     priority                   = 500
     direction                  = "Inbound"
     access                     = "Allow"
@@ -172,7 +172,7 @@ resource "azurerm_network_security_group" "bastion_a" {
   }
 
   security_rule {
-    name                       = "ssh_from_admin_b"
+    name                       = "ssh-from-admin-b"
     priority                   = 501
     direction                  = "Inbound"
     access                     = "Allow"
