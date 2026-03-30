@@ -12,10 +12,9 @@ resource "azurerm_public_ip" "bastion_a" {
 }
 
 resource "azurerm_network_interface" "bastion_a" {
-  name                  = "bastion-a"
-  location              = azurerm_resource_group.platform.location
-  resource_group_name   = azurerm_resource_group.platform.name
-  ip_forwarding_enabled = true
+  name                = "bastion-a"
+  location            = azurerm_resource_group.platform.location
+  resource_group_name = azurerm_resource_group.platform.name
 
   ip_configuration {
     name                          = "bastion-a"
