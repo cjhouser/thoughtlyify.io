@@ -64,6 +64,10 @@ resource "azurerm_subnet" "private_hub_a" {
   ]
 }
 
+resource "azurerm_subnet_route_table_association" "nva_private_hub_a" {
+  subnet_id      = azurerm_subnet.private_hub_a.id
+  route_table_id = azurerm_route_table.nva_private_hub_a.id
+}
 
 resource "azurerm_subnet" "bastion_hub_a" {
   name                 = "bastion-hub-a"
@@ -102,9 +106,9 @@ resource "azurerm_subnet" "nodes_platform_a" {
   ]
 }
 
-resource "azurerm_subnet_route_table_association" "spoke_nodes_platform_a" {
+resource "azurerm_subnet_route_table_association" "nodes_platform_a" {
   subnet_id      = azurerm_subnet.nodes_platform_a.id
-  route_table_id = azurerm_route_table.spoke.id
+  route_table_id = azurerm_route_table.nva_private_hub_a.id
 }
 
 
