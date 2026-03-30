@@ -47,7 +47,7 @@ resource "azurerm_linux_virtual_machine" "bastion_a" {
 
   admin_ssh_key {
     username   = "bastion"
-    public_key = file("~/.ssh/bastion_admin.pub")
+    public_key = file("~/.ssh/bastion.pub")
   }
 
   os_disk {
