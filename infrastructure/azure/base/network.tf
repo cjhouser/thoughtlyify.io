@@ -19,7 +19,8 @@ locals {
   egress_hub_network_a     = cidrsubnet(local.hub_network_a, 3, 0)
   nva_egress_hub_network_a = cidrhost(local.egress_hub_network_a, 4)
 
-  bastion_hub_network_a = cidrsubnet(local.hub_network_a, 3, 1)
+  bastion_hub_network_a         = cidrsubnet(local.hub_network_a, 3, 1)
+  bastion_bastion_hub_network_a = cidrhost(local.bastion_hub_network_a, 4)
 
   nodes_platform_network_a = cidrsubnet(local.platform_network_a, 3, 0)
 }
@@ -51,18 +52,23 @@ resource "azurerm_subnet_nat_gateway_association" "egress_a_egress_hub_a" {
   nat_gateway_id = azurerm_nat_gateway.egress_a.id
 }
 
-resource "azurerm_subnet_network_security_group_association" "hub_a" {
+resource "azurerm_subnet_network_security_group_association" "egress_hub_a" {
   subnet_id                 = azurerm_subnet.egress_hub_a.id
   network_security_group_id = azurerm_network_security_group.nva_a.id
 }
 
 resource "azurerm_subnet" "bastion_hub_a" {
-  name                 = "bastion_hub_a"
+  name                 = "bastion-hub-a"
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.hub_a.name
   address_prefixes = [
     local.bastion_hub_network_a
   ]
+}
+
+resource "azurerm_subnet_network_security_group_association" "bastion_hub_a" {
+  subnet_id                 = azurerm_subnet.bastion_hub_a.id
+  network_security_group_id = azurerm_network_security_group.bastion_a.id
 }
 
 
@@ -162,6 +168,36 @@ resource "azurerm_network_security_group" "nva_a" {
     source_port_range          = "*"
     destination_port_range     = "22"
     source_address_prefix      = local.bastion_hub_network_a
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_security_group" "bastion_a" {
+  name                = "bastion-a"
+  location            = azurerm_resource_group.platform.location
+  resource_group_name = azurerm_resource_group.platform.name
+
+  security_rule {
+    name                       = "ssh_from_admin_a"
+    priority                   = 500
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = local.admin_a_ip
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "ssh_from_admin_b"
+    priority                   = 501
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = local.admin_b_ip
     destination_address_prefix = "*"
   }
 }
