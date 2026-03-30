@@ -12,17 +12,18 @@ locals {
   network_class = "192.168.0.0/16"
 
   # vnet naming: {vnet}_network_{region}
+  # subnet naming: {subnet}_{vnet}_network_{region}
   hub_a      = cidrsubnet(local.network_class, 5, 0)
   platform_a = cidrsubnet(local.network_class, 5, 15)
 
-  # subnet naming: {subnet}_{vnet}_network_{region}
-  private_hub_a     = cidrsubnet(local.hub_a, 3, 0)
+  private_hub_a = cidrsubnet(local.hub_a, 3, 0)
+  bastion_hub_a = cidrsubnet(local.hub_a, 3, 1)
+  public_hub_a  = cidrsubnet(local.hub_a, 3, 7)
+
   nva_private_hub_a = cidrhost(local.private_hub_a, 4)
 
-  public_hub_a     = cidrsubnet(local.hub_a, 3, 7)
   nva_public_hub_a = cidrhost(local.public_hub_a, 4)
 
-  bastion_hub_a         = cidrsubnet(local.hub_a, 3, 1)
   bastion_bastion_hub_a = cidrhost(local.bastion_hub_a, 4)
 
   nodes_platform_a = cidrsubnet(local.platform_a, 3, 0)
