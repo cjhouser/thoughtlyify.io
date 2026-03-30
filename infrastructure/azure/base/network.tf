@@ -12,20 +12,20 @@ locals {
   network_class = "192.168.0.0/16"
 
   # vnet naming: {vnet}_network_{region}
-  hub_network_a      = cidrsubnet(local.network_class, 5, 0)
-  platform_network_a = cidrsubnet(local.network_class, 5, 15)
+  hub_a      = cidrsubnet(local.network_class, 5, 0)
+  platform_a = cidrsubnet(local.network_class, 5, 15)
 
   # subnet naming: {subnet}_{vnet}_network_{region}
-  private_hub_network_a     = cidrsubnet(local.hub_network_a, 3, 0)
-  nva_private_hub_network_a = cidrhost(local.private_hub_network_a, 4)
+  private_hub_a     = cidrsubnet(local.hub_a, 3, 0)
+  nva_private_hub_a = cidrhost(local.private_hub_a, 4)
 
-  public_hub_network_a     = cidrsubnet(local.hub_network_a, 3, 7)
-  nva_public_hub_network_a = cidrhost(local.public_hub_network_a, 4)
+  public_hub_a     = cidrsubnet(local.hub_a, 3, 7)
+  nva_public_hub_a = cidrhost(local.public_hub_a, 4)
 
-  bastion_hub_network_a         = cidrsubnet(local.hub_network_a, 3, 1)
-  bastion_bastion_hub_network_a = cidrhost(local.bastion_hub_network_a, 4)
+  bastion_hub_a         = cidrsubnet(local.hub_a, 3, 1)
+  bastion_bastion_hub_a = cidrhost(local.bastion_hub_a, 4)
 
-  nodes_platform_network_a = cidrsubnet(local.platform_network_a, 3, 0)
+  nodes_platform_a = cidrsubnet(local.platform_a, 3, 0)
 }
 
 
@@ -37,7 +37,7 @@ resource "azurerm_virtual_network" "hub_a" {
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   address_space = [
-    local.hub_network_a
+    local.hub_a
   ]
 }
 
@@ -46,7 +46,7 @@ resource "azurerm_subnet" "public_hub_a" {
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.hub_a.name
   address_prefixes = [
-    local.public_hub_network_a
+    local.public_hub_a
   ]
 }
 
@@ -60,7 +60,7 @@ resource "azurerm_subnet" "private_hub_a" {
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.hub_a.name
   address_prefixes = [
-    local.private_hub_network_a
+    local.private_hub_a
   ]
 }
 
@@ -74,7 +74,7 @@ resource "azurerm_subnet" "bastion_hub_a" {
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.hub_a.name
   address_prefixes = [
-    local.bastion_hub_network_a
+    local.bastion_hub_a
   ]
 }
 
@@ -92,7 +92,7 @@ resource "azurerm_virtual_network" "platform_a" {
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
   address_space = [
-    local.platform_network_a
+    local.platform_a
   ]
 }
 
@@ -102,7 +102,7 @@ resource "azurerm_subnet" "nodes_platform_a" {
   resource_group_name             = azurerm_resource_group.platform.name
   virtual_network_name            = azurerm_virtual_network.platform_a.name
   address_prefixes = [
-    local.nodes_platform_network_a
+    local.nodes_platform_a
   ]
 }
 

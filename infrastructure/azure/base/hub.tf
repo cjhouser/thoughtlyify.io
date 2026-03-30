@@ -20,7 +20,7 @@ resource "azurerm_network_interface" "bastion_a" {
     name                          = "bastion-a"
     subnet_id                     = azurerm_subnet.bastion_hub_a.id
     private_ip_address_allocation = "Static"
-    private_ip_address            = local.bastion_bastion_hub_network_a
+    private_ip_address            = local.bastion_bastion_hub_a
     primary                       = true
     public_ip_address_id          = azurerm_public_ip.bastion_a.id
   }
@@ -97,7 +97,7 @@ resource "azurerm_network_interface" "nva_private_hub_a" {
     name                          = "nva-private-hub-a"
     subnet_id                     = azurerm_subnet.private_hub_a.id
     private_ip_address_allocation = "Static"
-    private_ip_address            = local.nva_private_hub_network_a
+    private_ip_address            = local.nva_private_hub_a
   }
 }
 
@@ -111,7 +111,7 @@ resource "azurerm_network_interface" "nva_public_hub_a" {
     name                          = "nva-public-hub-a"
     subnet_id                     = azurerm_subnet.public_hub_a.id
     private_ip_address_allocation = "Static"
-    private_ip_address            = local.nva_public_hub_network_a
+    private_ip_address            = local.nva_public_hub_a
     primary                       = true
   }
 }
