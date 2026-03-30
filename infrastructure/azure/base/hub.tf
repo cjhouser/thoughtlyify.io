@@ -1,6 +1,7 @@
 ###############
 ### bastion ###
 ###############
+/*
 resource "azurerm_public_ip" "bastion_a" {
   name                    = "bastion-a"
   location                = azurerm_resource_group.platform.location
@@ -61,6 +62,12 @@ resource "azurerm_linux_virtual_machine" "bastion_a" {
     version   = "latest"
   }
 }
+
+output "bastion_public_ip" {
+  description = "public IP address of the bastion host"
+  value       = azurerm_linux_virtual_machine.bastion_a.public_ip_address
+}
+*/
 
 
 ##############
