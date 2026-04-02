@@ -51,6 +51,8 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
     node_count                  = 1
     os_disk_type                = "Ephemeral"
     host_encryption_enabled     = true
+    type                        = "VirtualMachineScaleSets"
+    zones                       = ["1", "2", "3"]
     #kubelet_disk_type           = "Temporary" # preview feature. enable it when it reaches GA
 
     kubelet_config {
@@ -74,6 +76,7 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
 
   network_profile {
     dns_service_ip      = "172.24.0.4"
+    load_balancer_sku   = "standard"
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
     outbound_type       = "userDefinedRouting"
