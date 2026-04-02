@@ -38,7 +38,7 @@ resource "azurerm_linux_virtual_machine" "bastion_a" {
   admin_username                  = "bastion"
   disable_password_authentication = true
   encryption_at_host_enabled      = true
-  size                            = "Standard_D2pds_v6"
+  size                            = "Standard_B2pts_v2"
 
   network_interface_ids = [
     azurerm_network_interface.bastion_a.id,
@@ -121,12 +121,13 @@ resource "azurerm_linux_virtual_machine" "nva_a" {
   name                            = "nva-a"
   resource_group_name             = azurerm_resource_group.platform.name
   location                        = azurerm_resource_group.platform.location
-  size                            = "Standard_D2pds_v6"
+  size                            = "Standard_B2pts_v2"
   encryption_at_host_enabled      = true
   admin_username                  = "nva"
   admin_password                  = var.admin_password_nva_a
   disable_password_authentication = false
   custom_data                     = base64encode(file("${path.root}/static/nva-cloud-config.yaml"))
+
   network_interface_ids = [
     azurerm_network_interface.nva_public_hub_a.id,
     azurerm_network_interface.nva_private_hub_a.id,
