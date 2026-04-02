@@ -4,30 +4,32 @@ resource "azurerm_user_assigned_identity" "platform" {
   resource_group_name = azurerm_resource_group.platform.name
 }
 
+resource "azurerm_role_assignment" "network_contributor_platform" {
+  role_definition_name = "Network Contributor"
+  description          = "Creates a private link in the node subnet."
+  principal_id         = azurerm_user_assigned_identity.platform.principal_id
+  scope                = azurerm_subnet.nodes_platform_a.id
+}
+
+resource "azurerm_role_assignment" "managed_identity_operator_platform" {
+  role_definition_name = "Managed Identity Operator"
+  description          = "The cluster using user-assigned managed identity must be granted 'Managed Identity Operator' role to assign kubelet identity"
+  principal_id         = azurerm_user_assigned_identity.platform.principal_id
+  scope                = azurerm_user_assigned_identity.platform_kubelet.id
+}
+
 resource "azurerm_user_assigned_identity" "platform_kubelet" {
   location            = azurerm_resource_group.platform.location
   name                = "platform-kubelet"
   resource_group_name = azurerm_resource_group.platform.name
 }
 
-resource "azurerm_role_assignment" "platform_kubelet_mio" {
-  scope                = azurerm_user_assigned_identity.platform_kubelet.id
-  role_definition_name = "Managed Identity Operator"
-  principal_id         = azurerm_user_assigned_identity.platform.principal_id
-}
-/*
 resource "azurerm_kubernetes_cluster" "platform_a" {
-  name                = "platform-a"
-  location            = azurerm_resource_group.platform.location
-  resource_group_name = azurerm_resource_group.platform.name
-  dns_prefix          = "platform-a" # use dns_prefix to allow external access to k8s api
-
-  api_server_access_profile {
-    authorized_ip_ranges = [
-      "73.93.82.208/32",
-      "24.23.136.148/32",
-    ]
-  }
+  name                    = "platform-a"
+  location                = azurerm_resource_group.platform.location
+  resource_group_name     = azurerm_resource_group.platform.name
+  dns_prefix              = "platform-a"
+  private_cluster_enabled = true
 
   identity {
     type = "UserAssigned"
@@ -94,7 +96,8 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
   }
 
   depends_on = [
-    azurerm_role_assignment.platform_kubelet_mio
+    azurerm_role_assignment.managed_identity_operator_platform,
+    azurerm_role_assignment.network_contributor_platform,
+    azurerm_route.nva_private_hub_a,
   ]
 }
-*/
