@@ -117,7 +117,7 @@ resource "azurerm_subnet_route_table_association" "nodes_platform_a" {
 ### peering ###
 ###############
 resource "azurerm_virtual_network_peering" "hub_a_to_platform_a" {
-  name                      = "hub-a-to-platform_a"
+  name                      = "hub-a-to-platform-a"
   resource_group_name       = azurerm_resource_group.platform.name
   virtual_network_name      = azurerm_virtual_network.hub_a.name
   remote_virtual_network_id = azurerm_virtual_network.platform_a.id
@@ -142,7 +142,7 @@ resource "azurerm_route_table" "nva_private_hub_a" {
   resource_group_name = azurerm_resource_group.platform.name
 }
 
-resource "azurerm_route" "nva-private-hub-a" {
+resource "azurerm_route" "nva_private_hub_a" {
   name                   = "nva-private-hub-a"
   resource_group_name    = azurerm_resource_group.platform.name
   route_table_name       = azurerm_route_table.nva_private_hub_a.name
