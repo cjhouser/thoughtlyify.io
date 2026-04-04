@@ -1,34 +1,29 @@
-locals {
-  # [C]lass [N]etwork [S]ubnet [H]ost
-  # CCCCCCCC.CCCCCCCC.NNNNNSSS.HHHHHHHH
-  # 11000000.10101000.00000000.00000000
-  #
-  # 5 bits NET  =  32 vnets. 16 pairs for regional redundancy
-  # 3 bits SUB  =   8 subnets per vnet
-  # 8 bits HOST = 251 usable host addresses per subnet
-  #
-  # Region A: 192.168.0.0/21   - 192.168.120.0/21 = cidrsubnet("192.168.0.0/16", 5, 0-15)
-  # Region B: 192.168.128.0/21 - 192.168.248.0/21 = cidrsubnet("192.168.0.0/16", 5, 16-31)
-  network_class = "192.168.0.0/16"
-
-  # vnet naming: {vnet}_network_{region}
-  # subnet naming: {subnet}_{vnet}_network_{region}
-  hub_a      = cidrsubnet(local.network_class, 5, 0)
-  platform_a = cidrsubnet(local.network_class, 5, 15)
-
-  private_hub_a = cidrsubnet(local.hub_a, 3, 0)
-  bastion_hub_a = cidrsubnet(local.hub_a, 3, 1)
-  public_hub_a  = cidrsubnet(local.hub_a, 3, 7)
-
-  nva_private_hub_a = cidrhost(local.private_hub_a, 4)
-
-  nva_public_hub_a = cidrhost(local.public_hub_a, 4)
-
-  bastion_bastion_hub_a = cidrhost(local.bastion_hub_a, 4)
-
-  nodes_platform_a = cidrsubnet(local.platform_a, 3, 0)
+terraform {
+  required_version = "~> 1.10.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+  }
 }
 
+provider "azurerm" {
+  features {}
+
+  use_cli         = true
+  subscription_id = var.engineering_subscription_id
+}
+
+locals {
+  admin_a_ip = "73.93.82.208/32"
+  admin_b_ip = "24.23.136.148/32"
+}
+
+resource "azurerm_resource_group" "platform" {
+  name     = "platform"
+  location = data.azurerm_location.centralus.location
+}
 
 #############
 ### hub_a ###
@@ -47,13 +42,8 @@ resource "azurerm_subnet" "public_hub_a" {
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.hub_a.name
   address_prefixes = [
-    local.public_hub_a
+    local.untrusted_hub_a
   ]
-}
-
-resource "azurerm_subnet_nat_gateway_association" "egress_a_egress_hub_a" {
-  subnet_id      = azurerm_subnet.public_hub_a.id
-  nat_gateway_id = azurerm_nat_gateway.egress_a.id
 }
 
 resource "azurerm_subnet" "private_hub_a" {
@@ -61,7 +51,7 @@ resource "azurerm_subnet" "private_hub_a" {
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.hub_a.name
   address_prefixes = [
-    local.private_hub_a
+    local.trusted_hub_a
   ]
 }
 
@@ -77,11 +67,6 @@ resource "azurerm_subnet" "bastion_hub_a" {
   address_prefixes = [
     local.bastion_hub_a
   ]
-}
-
-resource "azurerm_subnet_network_security_group_association" "bastion_hub_a" {
-  subnet_id                 = azurerm_subnet.bastion_hub_a.id
-  network_security_group_id = azurerm_network_security_group.bastion_a.id
 }
 
 
@@ -152,35 +137,62 @@ resource "azurerm_route" "nva_private_hub_a" {
 }
 
 
-###############################
-### network security groups ###
-###############################
-resource "azurerm_network_security_group" "bastion_a" {
+##########################
+### network interfaces ###
+##########################
+resource "azurerm_network_interface" "bastion_a" {
   name                = "bastion-a"
   location            = azurerm_resource_group.platform.location
   resource_group_name = azurerm_resource_group.platform.name
 
-  security_rule {
-    name                       = "ssh-from-admin-a"
-    priority                   = 500
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = local.admin_a_ip
-    destination_address_prefix = "*"
+  ip_configuration {
+    name                          = "bastion-a"
+    subnet_id                     = azurerm_subnet.bastion_hub_a.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = local.bastion_bastion_hub_a
+    primary                       = true
+    public_ip_address_id          = azurerm_public_ip.bastion_a.id
   }
+}
 
-  security_rule {
-    name                       = "ssh-from-admin-b"
-    priority                   = 501
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = local.admin_b_ip
-    destination_address_prefix = "*"
+resource "azurerm_network_interface" "nva_private_hub_a" {
+  name                = "nva-private-hub-a"
+  location            = azurerm_resource_group.platform.location
+  resource_group_name = azurerm_resource_group.platform.name
+
+  ip_configuration {
+    name                          = "nva-private-hub-a"
+    subnet_id                     = azurerm_subnet.private_hub_a.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = local.nva_private_hub_a
   }
+}
+
+resource "azurerm_network_interface" "nva_public_hub_a" {
+  name                  = "nva-public-hub-a"
+  location              = azurerm_resource_group.platform.location
+  resource_group_name   = azurerm_resource_group.platform.name
+  ip_forwarding_enabled = true
+
+  ip_configuration {
+    name                          = "nva-public-hub-a"
+    subnet_id                     = azurerm_subnet.public_hub_a.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = local.nva_public_hub_a
+    primary                       = true
+  }
+}
+
+
+###########################
+### public IP addresses ###
+###########################
+resource "azurerm_public_ip" "bastion_a" {
+  name                    = "bastion-a"
+  location                = azurerm_resource_group.platform.location
+  resource_group_name     = azurerm_resource_group.platform.name
+  allocation_method       = "Static"
+  sku                     = "Standard"
+  idle_timeout_in_minutes = 4
+  zones                   = ["1"]
 }
