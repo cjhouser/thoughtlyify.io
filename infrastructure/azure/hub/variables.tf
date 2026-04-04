@@ -1,3 +1,9 @@
+variable "bastion_whitelist" {
+  description = "Public IPv4 address prefixes that can SSH to the bastion host."
+  type        = list(string)
+  sensitive   = true
+}
+
 variable "engineering_subscription_id" {
   type      = string
   sensitive = true

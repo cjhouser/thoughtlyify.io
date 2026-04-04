@@ -1,8 +1,3 @@
-output "bastion_public_ip" {
-  description = "public IP address of the bastion host"
-  value       = azurerm_linux_virtual_machine.bastion_a.public_ip_address
-}
-
 output "platform_a_api_server_hostname" {
   description = "API server for platform-a cluster"
   value       = azurerm_kubernetes_cluster.platform_a.private_fqdn

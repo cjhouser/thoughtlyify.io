@@ -1,14 +1,31 @@
+terraform {
+  required_version = "~> 1.10.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+
+  use_cli         = true
+  subscription_id = var.engineering_subscription_id
+}
+
 resource "azurerm_user_assigned_identity" "platform" {
-  location            = azurerm_resource_group.platform.location
+  location            = data.azurerm_resource_group.platform.location
   name                = "platform"
-  resource_group_name = azurerm_resource_group.platform.name
+  resource_group_name = data.azurerm_resource_group.platform.name
 }
 
 resource "azurerm_role_assignment" "network_contributor_platform" {
   role_definition_name = "Network Contributor"
   description          = "Creates a private link in the node subnet."
   principal_id         = azurerm_user_assigned_identity.platform.principal_id
-  scope                = azurerm_subnet.nodes_platform_a.id
+  scope                = data.azurerm_subnet.nodes_platform_a.id
 }
 
 resource "azurerm_role_assignment" "managed_identity_operator_platform" {
@@ -19,15 +36,15 @@ resource "azurerm_role_assignment" "managed_identity_operator_platform" {
 }
 
 resource "azurerm_user_assigned_identity" "platform_kubelet" {
-  location            = azurerm_resource_group.platform.location
+  location            = data.azurerm_resource_group.platform.location
   name                = "platform-kubelet"
-  resource_group_name = azurerm_resource_group.platform.name
+  resource_group_name = data.azurerm_resource_group.platform.name
 }
 
 resource "azurerm_kubernetes_cluster" "platform_a" {
   name                    = "platform-a"
-  location                = azurerm_resource_group.platform.location
-  resource_group_name     = azurerm_resource_group.platform.name
+  location                = data.azurerm_resource_group.platform.location
+  resource_group_name     = data.azurerm_resource_group.platform.name
   dns_prefix              = "platform-a"
   private_cluster_enabled = true
 
@@ -46,7 +63,7 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
     os_sku                      = "AzureLinux3"
     temporary_name_for_rotation = "rotation"
     vm_size                     = "Standard_D2pds_v6"
-    vnet_subnet_id              = azurerm_subnet.nodes_platform_a.id
+    vnet_subnet_id              = data.azurerm_subnet.nodes_platform_a.id
     max_pods                    = 110
     node_count                  = 1
     os_disk_type                = "Ephemeral"
@@ -101,6 +118,6 @@ resource "azurerm_kubernetes_cluster" "platform_a" {
   depends_on = [
     azurerm_role_assignment.managed_identity_operator_platform,
     azurerm_role_assignment.network_contributor_platform,
-    azurerm_route.nva_private_hub_a,
+    #data.azurerm_route.nva_private_hub_a,
   ]
 }
