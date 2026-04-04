@@ -66,6 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     gnupg \
     less \
+    locales \
     openssl \
     ssh \
     vim
@@ -81,4 +82,5 @@ RUN chmod go+r /etc/apt/keyrings/microsoft.gpg
 RUN echo "Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: bookworm\nComponents: main\nArchitectures: ${TARGETARCH}\nSigned-By: /etc/apt/keyrings/microsoft.gpg" | tee /etc/apt/sources.list.d/azure-cli.sources
 RUN apt-get update && apt-get install -y --no-install-recommends \
     azure-cli
+RUN sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && locale-gen && update-locale LANG=en_US.UTF-8
 COPY .bashrc /root/.bashrc

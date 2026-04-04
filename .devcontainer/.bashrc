@@ -9,7 +9,7 @@ eval "$(dircolors)"
 alias ls='ls $LS_OPTIONS'
 
 # shortcuts
-alias gitr="git rebase -i --autosquash main"
+
 alias ns="kubectl config set-context --current --namespace"
 alias tf=tofu
 
@@ -39,6 +39,18 @@ plan () {
 
 apply () {
   tofu apply plan
+}
+
+destroy () {
+  SECRETS="/mnt/devvol/persistent/$(git rev-parse --show-prefix)/secrets.tfvars"
+  if [[ -e "${SECRETS}" ]]; then
+    VARS="-var-file=${SECRETS}"
+  fi
+  tofu destroy ${VARS}
+}
+
+gitr () {
+  git rebase -i --autosquash ${1:-main}
 }
 
 export PROMPT_COMMAND=prompt
