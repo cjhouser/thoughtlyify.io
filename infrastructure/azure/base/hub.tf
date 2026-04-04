@@ -116,21 +116,19 @@ resource "azurerm_network_interface" "nva_public_hub_a" {
   }
 }
 
-# simulate an NVA so i don't have to pay for azure firewall
-resource "azurerm_linux_virtual_machine" "nva_a" {
-  name                            = "nva-a"
+resource "azurerm_linux_virtual_machine" "firewall_a" {
+  name                            = "firewall-a"
   resource_group_name             = azurerm_resource_group.platform.name
   location                        = azurerm_resource_group.platform.location
-  size                            = "Standard_B2pts_v2"
+  size                            = "Standard_B2pls_v2"
   encryption_at_host_enabled      = true
-  admin_username                  = "nva"
-  admin_password                  = var.admin_password_nva_a
+  admin_username                  = var.firewall_admin_username
+  admin_password                  = var.firewall_admin_password
   disable_password_authentication = false
-  custom_data                     = base64encode(file("${path.root}/static/nva-cloud-config.yaml"))
 
   network_interface_ids = [
-    azurerm_network_interface.nva_public_hub_a.id,
     azurerm_network_interface.nva_private_hub_a.id,
+    #azurerm_network_interface.nva_public_hub_a.id,
   ]
 
   os_disk {
@@ -139,9 +137,9 @@ resource "azurerm_linux_virtual_machine" "nva_a" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-arm64"
-    version   = "latest"
+    publisher = "freebsd"
+    offer     = "freebsd-15_0"
+    sku       = "15_0-release-arm64-gen2-ufs"
+    version   = "15.0.0"
   }
 }

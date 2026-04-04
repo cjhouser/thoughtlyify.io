@@ -3,8 +3,14 @@ variable "engineering_subscription_id" {
   sensitive = true
 }
 
-variable "admin_password_nva_a" {
-  description = "admin password for the simulated NVA"
+variable "firewall_admin_password" {
+  description = "OS administrative user's password on firewall VMs"
+  type        = string
+  sensitive   = true
+}
+
+variable "firewall_admin_username" {
+  description = "OS administrative user's username on firewall VMs"
   type        = string
   sensitive   = true
 }
