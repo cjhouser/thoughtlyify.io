@@ -14,9 +14,3 @@ variable "firewall_admin_password" {
   type        = string
   sensitive   = true
 }
-
-variable "firewall_admin_username" {
-  description = "OS administrative user's username on firewall VMs"
-  type        = string
-  sensitive   = true
-}
