@@ -179,6 +179,7 @@ resource "azurerm_network_interface" "nva_public_hub_a" {
     private_ip_address_allocation = "Static"
     private_ip_address            = local.nva_public_hub_a
     primary                       = true
+    public_ip_address_id          = azurerm_public_ip.firewall_a.id
   }
 }
 
@@ -188,6 +189,16 @@ resource "azurerm_network_interface" "nva_public_hub_a" {
 ###########################
 resource "azurerm_public_ip" "bastion_a" {
   name                    = "bastion-a"
+  location                = azurerm_resource_group.platform.location
+  resource_group_name     = azurerm_resource_group.platform.name
+  allocation_method       = "Static"
+  sku                     = "Standard"
+  idle_timeout_in_minutes = 4
+  zones                   = ["1"]
+}
+
+resource "azurerm_public_ip" "firewall_a" {
+  name                    = "firewall-a"
   location                = azurerm_resource_group.platform.location
   resource_group_name     = azurerm_resource_group.platform.name
   allocation_method       = "Static"
