@@ -147,8 +147,8 @@ resource "azurerm_linux_virtual_machine" "firewall_a" {
   disable_password_authentication = false
 
   network_interface_ids = [
+    data.azurerm_network_interface.nva_public_hub_a.id, # bsdinstall fails if primary interface cannot reach the internet
     data.azurerm_network_interface.nva_private_hub_a.id,
-    #data.azurerm_network_interface.nva_public_hub_a.id,
   ]
 
   os_disk {
