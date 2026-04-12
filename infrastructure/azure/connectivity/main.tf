@@ -163,6 +163,7 @@ resource "azurerm_network_interface" "nva_private_hub_a" {
     subnet_id                     = azurerm_subnet.private_hub_a.id
     private_ip_address_allocation = "Static"
     private_ip_address            = local.nva_private_hub_a
+    primary                       = true
   }
 }
 
