@@ -53,7 +53,7 @@ resource "azurerm_linux_virtual_machine" "bastion_a" {
   name                            = "bastion-a"
   resource_group_name             = data.azurerm_resource_group.platform.name
   location                        = data.azurerm_resource_group.platform.location
-  admin_username                  = "bastion"
+  admin_username                  = "oper"
   disable_password_authentication = true
   encryption_at_host_enabled      = true
   size                            = "Standard_B2pts_v2"
@@ -63,7 +63,7 @@ resource "azurerm_linux_virtual_machine" "bastion_a" {
   ]
 
   admin_ssh_key {
-    username   = "bastion"
+    username   = "oper"
     public_key = file("~/.ssh/bastion.pub")
   }
 
@@ -90,7 +90,7 @@ resource "azurerm_linux_virtual_machine" "firewall_a" {
   location                        = data.azurerm_resource_group.platform.location
   size                            = "Standard_B2pls_v2"
   encryption_at_host_enabled      = true
-  admin_username                  = var.firewall_admin_username
+  admin_username                  = "oper"
   admin_password                  = var.firewall_admin_password
   disable_password_authentication = false
 
