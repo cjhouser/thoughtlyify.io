@@ -13,6 +13,18 @@ data "azurerm_subnet" "bastion_hub_a" {
   virtual_network_name = data.azurerm_virtual_network.hub_a.name
 }
 
+data "azurerm_subnet" "nva_private_hub_a" {
+  name                 = "private-hub-a"
+  resource_group_name  = data.azurerm_resource_group.platform.name
+  virtual_network_name = data.azurerm_virtual_network.hub_a.name
+}
+
+data "azurerm_subnet" "nva_public_hub_a" {
+  name                 = "public-hub-a"
+  resource_group_name  = data.azurerm_resource_group.platform.name
+  virtual_network_name = data.azurerm_virtual_network.hub_a.name
+}
+
 data "azurerm_network_interface" "bastion_a" {
   name                = "bastion-a"
   resource_group_name = data.azurerm_resource_group.platform.name
