@@ -38,18 +38,20 @@ resource "azurerm_virtual_network" "hub_a" {
 }
 
 resource "azurerm_subnet" "public_hub_a" {
-  name                 = "public-hub-a"
-  resource_group_name  = azurerm_resource_group.platform.name
-  virtual_network_name = azurerm_virtual_network.hub_a.name
+  name                            = "public-hub-a"
+  default_outbound_access_enabled = false
+  resource_group_name             = azurerm_resource_group.platform.name
+  virtual_network_name            = azurerm_virtual_network.hub_a.name
   address_prefixes = [
     local.untrusted_hub_a
   ]
 }
 
 resource "azurerm_subnet" "private_hub_a" {
-  name                 = "private-hub-a"
-  resource_group_name  = azurerm_resource_group.platform.name
-  virtual_network_name = azurerm_virtual_network.hub_a.name
+  name                            = "private-hub-a"
+  default_outbound_access_enabled = false
+  resource_group_name             = azurerm_resource_group.platform.name
+  virtual_network_name            = azurerm_virtual_network.hub_a.name
   address_prefixes = [
     local.trusted_hub_a
   ]
@@ -61,9 +63,10 @@ resource "azurerm_subnet_route_table_association" "nva_private_hub_a" {
 }
 
 resource "azurerm_subnet" "bastion_hub_a" {
-  name                 = "bastion-hub-a"
-  resource_group_name  = azurerm_resource_group.platform.name
-  virtual_network_name = azurerm_virtual_network.hub_a.name
+  name                            = "bastion-hub-a"
+  default_outbound_access_enabled = false
+  resource_group_name             = azurerm_resource_group.platform.name
+  virtual_network_name            = azurerm_virtual_network.hub_a.name
   address_prefixes = [
     local.bastion_hub_a
   ]
