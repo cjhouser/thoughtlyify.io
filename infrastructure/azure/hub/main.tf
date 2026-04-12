@@ -162,4 +162,10 @@ resource "azurerm_linux_virtual_machine" "firewall_a" {
     sku       = "15_0-release-arm64-gen2-ufs"
     version   = "15.0.0"
   }
+
+  plan {
+    name      = "15_0-release-arm64-gen2-ufs"
+    product   = "freebsd-15_0"
+    publisher = "freebsd"
+  }
 }
