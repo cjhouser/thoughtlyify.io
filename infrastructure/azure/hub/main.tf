@@ -96,6 +96,46 @@ resource "azurerm_linux_virtual_machine" "bastion_a" {
 ################
 ### firewall ###
 ################
+resource "azurerm_network_security_group" "firewall_untrusted_a" {
+  name                = "firewall-untrusted-a"
+  location            = data.azurerm_resource_group.platform.location
+  resource_group_name = data.azurerm_resource_group.platform.name
+
+  security_rule {
+    name                       = "https-from-internet"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "0.0.0.0/0"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "no-inbound"
+    priority                   = 4096
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "firewall_untrusted_a" {
+  network_security_group_id = azurerm_network_security_group.firewall_untrusted_a.id
+  subnet_id                 = data.azurerm_subnet.nva_public_hub_a.id
+}
+
+resource "azurerm_network_interface_security_group_association" "firewall_untrusted_a" {
+  network_security_group_id = azurerm_network_security_group.firewall_untrusted_a.id
+  network_interface_id      = data.azurerm_network_interface.nva_public_hub_a.id
+}
+
 resource "azurerm_linux_virtual_machine" "firewall_a" {
   name                            = "firewall-a"
   resource_group_name             = data.azurerm_resource_group.platform.name
