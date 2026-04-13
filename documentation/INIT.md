@@ -30,13 +30,28 @@ Set up fir
 
 ### /etc/pf.conf
 ```
+# MACROS
 ext_if = "hn0"
 int_if = "hn1"
 client_out = "{ domain, https }"
 udp_services = "{ domain, ntp }"
 icmp_types = "{ echoreq, unreach }"
 localnet = "192.168.0.0/16"
+
+# TABLES
+
+# OPTIONS
+
+# ETHERNET FILTERING
+
+# TRAFFIC NORMALIZATION
+
+# QUEUEING
+
+# TRANSLATION
 nat on $ext_if from $localnet to any -> ($ext_if)
+
+# PACKET FILTERING
 block all
 pass quick inet proto { tcp, udp } to any port $udp_services keep state
 pass in inet proto tcp to $int_if port ssh
