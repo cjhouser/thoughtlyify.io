@@ -9,7 +9,6 @@ eval "$(dircolors)"
 alias ls='ls $LS_OPTIONS'
 
 # shortcuts
-
 alias ns="kubectl config set-context --current --namespace"
 alias tf=tofu
 
@@ -29,24 +28,38 @@ prompt () {
   PS1+="\[\e[33;1m\] $\[\e[m\] "
 }
 
+# terraform shortcuts
+export TF_ROOT="/mnt/devvol/tf"
+export TF_PLANS="${TF_ROOT}/plans"
+export TF_SECRETS="${TF_ROOT}/secrets"
+export TF_STATE="${TF_ROOT}/state"
+
 plan () {
-  SECRETS="/mnt/devvol/persistent/$(git rev-parse --show-prefix)/secrets.tfvars"
+  ROOT_MODULE="$(git rev-parse --show-prefix | sed 's#/$##')"
+  STATE="${TF_STATE}/${ROOT_MODULE}.tfstate"
+  PLAN="${TF_PLANS}/${ROOT_MODULE}"
+  SECRETS="${TF_SECRETS}/${ROOT_MODULE}.tfvars"
   if [[ -e "${SECRETS}" ]]; then
     VARS="-var-file=${SECRETS}"
   fi
-  tofu plan -out=plan ${VARS}
+  tofu plan -state=${STATE} -out=${PLAN} ${VARS}
 }
 
 apply () {
-  tofu apply plan
+  ROOT_MODULE="$(git rev-parse --show-prefix | sed 's#/$##')"
+  STATE="${TF_STATE}/${ROOT_MODULE}.tfstate"
+  PLAN="${TF_PLANS}/${ROOT_MODULE}"
+  tofu apply -state=${STATE} ${PLAN}
 }
 
 destroy () {
-  SECRETS="/mnt/devvol/persistent/$(git rev-parse --show-prefix)/secrets.tfvars"
+  ROOT_MODULE="$(git rev-parse --show-prefix | sed 's#/$##')"
+  STATE="${TF_STATE}/${ROOT_MODULE}.tfstate"
+  SECRETS="${TF_SECRETS}/${ROOT_MODULE}.tfvars"
   if [[ -e "${SECRETS}" ]]; then
     VARS="-var-file=${SECRETS}"
   fi
-  tofu destroy ${VARS}
+  tofu destroy -state=${STATE} ${VARS}
 }
 
 gitr () {
