@@ -102,6 +102,18 @@ resource "azurerm_network_security_group" "firewall_untrusted_a" {
   resource_group_name = data.azurerm_resource_group.platform.name
 
   security_rule {
+    name                       = "ssh-from-bastion"
+    priority                   = 201
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = data.azurerm_subnet.bastion_hub_a.address_prefix
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
     name                       = "https-from-internet"
     priority                   = 200
     direction                  = "Inbound"
