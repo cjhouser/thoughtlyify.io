@@ -1,5 +1,7 @@
 ## Connect to a private AKS cluster through bastion host
 ```sh
+az aks get-credentials --name platform-a --overwrite-existing
+
 # Set these from terraform outputs
 API_SERVER_HOSTNAME=
 API_SERVER_IP=

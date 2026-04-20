@@ -24,7 +24,9 @@ Set up fir
         kldload pf
         ```
     1. reboot the machine
+    1. `kldload pf`
     1. add rules to /etc/pf.conf
+    1. turn on pf: `pftctl -e`
     1. load pf configuration: `pfctl -f /etc/pf.conf`
     
 
@@ -32,15 +34,12 @@ Set up fir
 ```
 # MACROS
 ext_if = "hn0"
-int_if = "hn1"
-client_out = "{ domain, https }"
-udp_services = "{ domain, ntp }"
-icmp_types = "{ echoreq, unreach }"
 localnet = "192.168.0.0/16"
 
 # TABLES
 
 # OPTIONS
+set skip on lo
 
 # ETHERNET FILTERING
 
@@ -52,12 +51,7 @@ localnet = "192.168.0.0/16"
 nat on $ext_if from $localnet to any -> ($ext_if)
 
 # PACKET FILTERING
-block all
-pass quick inet proto { tcp, udp } to any port $udp_services keep state
-pass in inet proto tcp to $int_if port ssh
-pass inet proto tcp from $localnet to any port $client_out \
-    flags S/SA keep state
-pass inet proto icmp from $localnet to any keep state
-pass inet proto icmp from any to $ext_if keep state
-pass inet proto icmp all icmp-type $icmp_types keep state
+pass in quick all
+pass out quick all
+pass in on $ext_if proto tcp to ($ext_if) port 443 rdr-to 192.168.120.4 port 
 ```
