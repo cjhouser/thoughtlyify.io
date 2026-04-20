@@ -12,6 +12,9 @@ alias ls='ls $LS_OPTIONS'
 alias ns="kubectl config set-context --current --namespace"
 alias tf=tofu
 
+# kubectl contexts that are unique per terminal
+alias devenv="export KUBECONFIG=~/.kube/devenv.yaml"
+
 # kubectl shortcuts
 alias k=kubectl
 source <(kubectl completion bash)
@@ -19,7 +22,7 @@ complete -o default -F __start_kubectl k
 
 # Prompt dir is relative to git root
 prompt () {
-  if $(git rev-parse --is-inside-work-tree 2>/dev/null); then
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     git_root_dir=$(git rev-parse --show-toplevel)
     PS1="\[\e[0;34m\]$(basename ${git_root_dir})/\[\e[0;32m\]$(git rev-parse --show-prefix)"
   else
