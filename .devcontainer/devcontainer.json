@@ -1,49 +1,39 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
 {
 	"name": "devenv",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"build": {
-		"dockerfile": "Containerfile"
-	},
-
+	"image": "devenv:0.14.0",
 	"mounts": [
 		"type=volume,source=devvol,destination=/mnt/devvol,ro=false"
 	],
 	"runArgs": [
-		"--network=devnet"
+		"--network=devnet",
+		"--hostname=devenv"
 	],
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": {
-		"rebase-alias": "echo 'alias gitr=\"git rebase -i --autosquash main\"' >> ~/.bashrc",
-		"kubectl-alias": "echo 'alias k=kubectl' >> ~/.bashrc",
-		"namespace-alias": "echo 'alias ns=\"kubectl config set-context --current --namespace \"' >> ~/.bashrc",
-		"kubectl-autocompletion": "echo \"source <(kubectl completion bash)\" >> ~/.bashrc",
-		"kubectl-alias-autocompletion": "echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc",
-		"volume-owner": "sudo chown -R $(id -u):$(id -g) /mnt/devvol",
+		"volume-owner": "chown -R $(id -u):$(id -g) /mnt/devvol",
 		".aws-link": "ln -s /mnt/devvol/aws ~/.aws",
 		".kube-link": "ln -s /mnt/devvol/kube ~/.kube",
-		".ssh-link": "rm -rf ~/.ssh && ln -s /mnt/devvol/ssh ~/.ssh"
+		".ssh-link": "rm -rf ~/.ssh && ln -s /mnt/devvol/ssh ~/.ssh",
+		".az-link": "ln -s /mnt/devvol/az ~/.azure"
 	},
-
-	// Configure tool-specific properties.
 	"customizations": {
-    "vscode": {
-        "extensions":[
-			"golang.go",
-			"ms-azuretools.vscode-docker",
-			"vmware.vscode-concourse",
-			"opentofu.vscode-opentofu"
-		]
-    }
-}
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+		"vscode": {
+			"settings": {
+				"[opentofu][opentofu-vars]": {
+					"editor.defaultFormatter": "opentofu.vscode-opentofu",
+					"editor.formatOnSave": true,
+					"editor.formatOnSaveMode": "file"
+				},
+				"files.associations": {
+					"*.go.tmpl": "go",
+					"*.tf.tmpl": "opentofu"
+				}
+			},
+			"extensions": [
+				"golang.go",
+				"ms-azuretools.vscode-docker",
+				"vmware.vscode-concourse",
+				"opentofu.vscode-opentofu"
+			]
+		}
+	}
 }

@@ -1,3 +1,5 @@
+*.bkp
+
 # Contains architecture and operating system specific binaries
 **/.terraform/*
 
