@@ -1,4 +1,4 @@
-# https://github.com/openbao/openbao-helm/tree/v0.19.1/charts/openbao
+# https://github.com/openbao/openbao-helm/tree/v0.27.1/charts/openbao
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
@@ -10,7 +10,7 @@ global:
   enabled: true
 
   # -- The namespace to deploy to. Defaults to the `helm` installation namespace.
-  namespace: "secret-management"
+  namespace: "vault"
 
   # -- Image pull secret to use for registry authentication.
   # Alternatively, the value may be specified as an array of strings.
@@ -22,7 +22,7 @@ global:
   tlsDisable: false
 
   # -- External openbao server address for the injector and CSI provider to use.
-  # Setting this will disable deployment of a openbao server.
+  # Setting this will disable deployment of an OpenBao server.
   externalBaoAddr: ""
   # -- Deprecated: Please use global.externalBaoAddr instead.
   externalVaultAddr: ""
@@ -64,8 +64,10 @@ injector:
   metrics:
     enabled: false
 
-  # -- Deprecated: Please use global.externalBaoAddr instead.
+  # -- Deprecated: Please use injector.externalBaoAddr instead.
   externalVaultAddr: ""
+  # -- External openbao server address for the injector to use.
+  externalBaoAddr: ""
 
   # image sets the repo and tag of the vault-k8s image to use for the injector.
   image:
@@ -74,7 +76,7 @@ injector:
     # -- image repo to use for k8s image
     repository: "hashicorp/vault-k8s"
     # -- image tag to use for k8s image
-    tag: "1.4.2"
+    tag: "1.7.2"
     # -- image pull policy to use for k8s image. if tag is "latest", set to "Always"
     pullPolicy: IfNotPresent
 
@@ -87,7 +89,7 @@ injector:
     # -- image repo to use for agent image
     repository: "openbao/openbao"
     # -- image tag to use for agent image - defaults to chart appVersion
-    tag: "2.4"
+    tag: ""
     # -- image pull policy to use for agent image. if tag is "latest", set to "Always"
     pullPolicy: IfNotPresent
 
@@ -95,9 +97,8 @@ injector:
   agentDefaults:
     # For more information on configuring resources, see the K8s documentation:
     # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-    cpuLimit: "100m"
-    cpuRequest: "100m"
-    memLimit: "64Mi"
+    cpuRequest: "250m"
+    memLimit: "128Mi"
     memRequest: "64Mi"
     # ephemeralLimit: "128Mi"
     # ephemeralRequest: "64Mi"
@@ -273,6 +274,8 @@ injector:
   #   runAsGroup: {{ .Values.injector.gid | default 1000 }}
   #   runAsUser: {{ .Values.injector.uid | default 100 }}
   #   fsGroup: {{ .Values.injector.gid | default 1000 }}
+  #   seccompProfile:
+  #     type: RuntimeDefault
   # and for container is
   #    allowPrivilegeEscalation: false
   #    capabilities:
@@ -284,11 +287,10 @@ injector:
 
   resources:
     requests:
-      memory: 64Mi
-      cpu: 100m
+      memory: 256Mi
+      cpu: 250m
     limits:
-      memory: 64Mi
-      cpu: 100m
+      memory: 256Mi
 
   # extraEnvironmentVars is a list of extra environment variables to set in the
   # injector deployment.
@@ -325,8 +327,7 @@ injector:
   # Example:
   # nodeSelector:
   #   beta.kubernetes.io/arch: amd64
-  nodeSelector:
-    eks.amazonaws.com/nodegroup: workers
+  nodeSelector: {}
 
   # Priority class for injector pods
   priorityClassName: ""
@@ -348,6 +349,9 @@ injector:
   service:
     # Extra annotations to attach to the injector service
     annotations: {}
+    # Extra labels for the service definition.
+    # This should be a YAML map of the labels to apply to the injector service
+    extraLabels: {}
 
   # Injector serviceAccount specific config
   serviceAccount:
@@ -384,7 +388,7 @@ server:
     # -- image repo to use for server image
     repository: "openbao/openbao"
     # -- image tag to use for server image - defaults to chart appVersion
-    tag: "2.4"
+    tag: ""
     # -- image pull policy to use for server image. if tag is "latest", set to "Always"
     pullPolicy: IfNotPresent
 
@@ -394,7 +398,7 @@ server:
 
   # Configure the pod management policy for the StatefulSet
   # See https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
-  podManagementPolicy: "Parallel"
+  podManagementPolicy: "OrderedReady"
 
   # Configure the logging verbosity for the OpenBao server.
   # Supported log levels include: trace, debug, info, warn, error
@@ -410,7 +414,6 @@ server:
       cpu: 250m
     limits:
       memory: 256Mi
-      cpu: 250m
 
   # Ingress allows ingress services to be created to allow external access
   # from Kubernetes to access OpenBao pods.
@@ -420,8 +423,7 @@ server:
     enabled: false
     labels: {}
       # traffic: external
-    annotations:
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    annotations: {}
       # |
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -431,7 +433,7 @@ server:
 
     # Optionally use ingressClassName instead of deprecated annotation.
     # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation
-    ingressClassName: "nginx"
+    ingressClassName: ""
 
     # As of Kubernetes 1.19, all Ingress Paths must have a pathType configured. The default value below should be sufficient in most cases.
     # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types for other possible values.
@@ -441,7 +443,7 @@ server:
     # configure the ingress to point to the OpenBao active service.
     activeService: true
     hosts:
-      - host: secret-management.thoughtlyify.click
+      - host: vault.thoughtlyify.io
         paths: []
     ## Extra paths to prepend to the host configuration. This is useful when working with annotation based services.
     extraPaths: []
@@ -452,9 +454,105 @@ server:
     #       port:
     #         number: use-annotation
     tls:
-      - secretName: secret-management.thoughtlyify.click
+      - secretName: vault.thoughtlyify.io
         hosts:
-          - secret-management.thoughtlyify.click
+          - vault.thoughtlyify.io
+
+  # Gateway consolidates configuration related to the Kubernetes Gateway API
+  # Currently, only creating a TLSRoute is supported
+  # See: https://gateway-api.sigs.k8s.io/
+  gateway:
+    # Configures a TLSRoute for the OpenBao server. This can be enabled independently of the ingress configuration to allow for side-by-side scenarios for migration.
+    tlsRoute:
+      enabled: false
+      labels: {}
+      # traffic: external
+      annotations: {}
+      # external-dns.alpha.kubernetes.io/hostname: chart-example.local
+
+      hosts: []
+        # - chart-example.local
+
+      # Allows overriding the TLSRoutes apiVersion in case a different version of Gateway API is installed on the cluster.
+      apiVersion: gateway.networking.k8s.io/v1alpha3
+
+      # When HA mode is enabled and K8s service registration is being used,
+      # configure the ingress to point to the OpenBao active service.
+      activeService: true
+
+      # List of ParentRefs. As the helm chart configures no gateways itself,
+      # this should be set to at least one gateway with one or more TLS listeners
+      parentRefs: []
+        # - name: my-gw
+        #   namespace: gateway-namespace
+        #   # sectionName is optional to fix to a specific listener
+        #   sectionName: listener-name
+
+    # Configures a HTTPRoute for the OpenBao server. This can be enabled independently of the ingress configuration to allow for side-by-side scenarios for migration.
+    # WARNING: Terminating TLS before reaching the OpenBao Server is not recommended and may break things like certificate authentication. Prefer usage of `TLSRoute`.
+    httpRoute:
+      enabled: false
+      labels: {}
+      # traffic: external
+      annotations: {}
+      # external-dns.alpha.kubernetes.io/hostname: chart-example.local
+
+      hosts:
+      - chart-example.local
+
+      # Allows overriding the HTTPRoute apiVersion in case a different version of Gateway API is installed on the cluster.
+      apiVersion: gateway.networking.k8s.io/v1
+
+      # When HA mode is enabled and K8s service registration is being used,
+      # configure the ingress to point to the OpenBao active service.
+      activeService: true
+
+      # List of ParentRefs. As the helm chart configures no gateways itself,
+      # this should be set to at least one gateway with one or more HTTP listeners
+      parentRefs: []
+        # - name: my-gw
+        #   namespace: gateway-namespace
+        #   # sectionName is optional to fix to a specific listener
+        #   sectionName: listener-name
+
+      matches:
+        path:
+          type: PathPrefix
+          value: '/'
+        timeouts: {}
+          # request: 10s  #Maximum time the Gateway waits to complete the full client request and response cycle.
+          # backendRequest: 10s # Maximum time the Gateway waits for a response from the backend service.
+      filters: []
+      # - type: RequestHeaderModifier
+      #   requestHeaderModifier:
+      #     set:
+      #       - name: X-Forwarded-Proto
+      #         value: https
+
+    # If TLS is enable on server (see global.tlsDisable) the gateway must be configured
+    # with BackendTLSPolicy to correctly handles TLS connection with server in case TLS termination happens at gateway
+    tlsPolicy:
+      enabled: false
+      labels: {}
+      # traffic: external
+      annotations: {}
+      # external-dns.alpha.kubernetes.io/hostname: chart-example.local
+
+      # Allows overriding the BackendTLSPolicy apiVersion in case a different version of Gateway API is installed on the cluster.
+      apiVersion: gateway.networking.k8s.io/v1
+
+      # When HA mode is enabled and K8s service registration is being used,
+      # configure the ingress to point to the OpenBao active service.
+      activeService: true
+
+      # Identifies an API object to apply the policy to.
+      # If no one is specified the default is to target the OpenBao service
+      targetRefs: []
+
+      validation: {}
+      # caCertificateRefs:
+      # - kind: ConfigMap
+      #   name: vault-ca
 
   # hostAliases is a list of aliases to be added to /etc/hosts. Specified as a YAML list.
   hostAliases: []
@@ -607,7 +705,7 @@ server:
   - name: tls
     secret:
       defaultMode: 420
-      secretName: secret-management.thoughtlyify.click
+      secretName: vault.thoughtlyify.io
   - name: userpass
     secret:
       defaultMode: 420
@@ -647,11 +745,7 @@ server:
   # Toleration Settings for server pods
   # This should be either a multi-line string or YAML matching the Toleration array
   # in a PodSpec.
-  tolerations:
-  - key: "dedicated"
-    operator: "Equal"
-    value: "persistence"
-    effect: "NoSchedule"
+  tolerations: []
 
   # nodeSelector labels for server pod assignment, formatted as a multi-line string or YAML map.
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
@@ -710,6 +804,9 @@ server:
       # YAML-formatted multi-line templated string map of the annotations to apply
       # to the active service.
       annotations: {}
+      # Extra labels for the service definition.
+      # This should be a YAML map of the labels to apply to the active service
+      extraLabels: {}
     # Enable or disable the openbao-standby service, which selects OpenBao pods that
     # have labeled themselves as a cluster follower with `openbao-active: "false"`.
     standby:
@@ -717,6 +814,14 @@ server:
       # Extra annotations for the service definition. This can either be YAML or a
       # YAML-formatted multi-line templated string map of the annotations to apply
       # to the standby service.
+      annotations: {}
+      # Extra labels for the service definition.
+      # This should be a YAML map of the labels to apply to the standby service
+      extraLabels: {}
+    headless:
+      # Extra annotations for the headless service definition. This can either be YAML or a
+      # YAML-formatted multi-line templated string map of the annotations to apply
+      # to the headless service.
       annotations: {}
     # If enabled, the service selectors will include `app.kubernetes.io/instance: {{ .Release.Name }}`
     # When disabled, services may select OpenBao pods not deployed from the chart.
@@ -779,10 +884,21 @@ server:
     port: 8200
     # Target port to which the service should be mapped to
     targetPort: 8200
+
+    # -- extraPorts is a list of extra ports. Specified as a YAML list.
+    # This is useful if you need to add additional ports to the server service in dynamic way.
+    extraPorts: []
+    # - name: metrics
+    #   port: 9101
+    #   targetPort: 9101
+
     # Extra annotations for the service definition. This can either be YAML or a
     # YAML-formatted multi-line templated string map of the annotations to apply
     # to the service.
     annotations: {}
+    # Extra labels for the service definition.
+    # This should be a YAML map of the labels to apply to the service
+    extraLabels: {}
 
   # This configures the OpenBao Statefulset to create a PVC for data
   # storage when using the file or raft backend storage engines.
@@ -795,7 +911,7 @@ server:
     mountPath: "/openbao/data"
     # Name of the storage class to use.  If null it will use the
     # configured default Storage Class.
-    storageClass: gp3
+    storageClass: null
     # Access Mode of the storage device being used for the PVC
     accessMode: ReadWriteOnce
     # Annotations to apply to the PVC
@@ -819,14 +935,14 @@ server:
   # /openbao/audit
   # See https://openbao.org/docs/audit to know more
   auditStorage:
-    enabled: true
+    enabled: false
     # Size of the PVC created
     size: 10Gi
     # Location where the PVC will be mounted.
     mountPath: "/openbao/audit"
     # Name of the storage class to use.  If null it will use the
     # configured default Storage Class.
-    storageClass: gp3
+    storageClass: null
     # Access Mode of the storage device being used for the PVC
     accessMode: ReadWriteOnce
     # Annotations to apply to the PVC
@@ -861,7 +977,37 @@ server:
     # such as passwords should be either mounted through extraSecretEnvironmentVars
     # or through a Kube secret.  For more information see:
     # https://openbao.org/docs/platform/k8s/helm/run/#protecting-sensitive-openbao-configurations
-    config: null
+    config: |
+      ui = true
+
+      listener "tcp" {
+        tls_disable = 1
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+        # Enable unauthenticated metrics access (necessary for Prometheus Operator)
+        #telemetry {
+        #  unauthenticated_metrics_access = "true"
+        #}
+      }
+      storage "file" {
+        path = "/openbao/data"
+      }
+
+      # Example configuration for using auto-unseal, using Google Cloud KMS. The
+      # GKMS keys must already exist, and the cluster must have a service account
+      # that is authorized to access GCP KMS.
+      #seal "gcpckms" {
+      #   project     = "openbao-helm-dev"
+      #   region      = "global"
+      #   key_ring    = "openbao-helm-unseal-kr"
+      #   crypto_key  = "openbao-helm-unseal-key"
+      #}
+
+      # Example configuration for enabling Prometheus metrics in your config.
+      #telemetry {
+      #  prometheus_retention_time = "30s"
+      #  disable_hostname = true
+      #}
 
   # Run OpenBao in "HA" mode. There are no storage requirements unless the audit log
   # persistence is required.  In HA mode OpenBao will configure itself to use Consul
@@ -972,7 +1118,7 @@ server:
     # such as passwords should be either mounted through extraSecretEnvironmentVars
     # or through a Kube secret.  For more information see:
     # https://openbao.org/docs/platform/k8s/helm/run/#protecting-sensitive-openbao-configurations
-    config: "dummy" # this has to be set otherwise ha.raft.config will not be rendered
+    config: "dummy"  # this has to be set otherwise ha.raft.config will not be rendered
 
     # A disruption budget limits the number of pods of a replicated application
     # that are down simultaneously from voluntary disruptions
@@ -1025,6 +1171,8 @@ server:
     #   runAsGroup: {{ .Values.server.gid | default 1000 }}
     #   runAsUser: {{ .Values.server.uid | default 100 }}
     #   fsGroup: {{ .Values.server.gid | default 1000 }}
+    #   seccompProfile:
+    #     type: RuntimeDefault
     # container:
     #   allowPrivilegeEscalation: false
     #
@@ -1086,9 +1234,13 @@ ui:
   # of the annotations to apply to the ui service
   annotations: {}
 
+  # Extra labels for the service definition.
+  # This should be a YAML map of the labels to apply to the ui service
+  extraLabels: {}
+
 # openbao-csi-provider
 csi:
-  # -- True if you want to install a openbao-csi-provider daemonset.
+  # -- True if you want to install an openbao-csi-provider daemonset.
   #
   # Requires installing the secrets-store-csi-driver separately, see:
   # https://secrets-store-csi-driver.sigs.k8s.io/getting-started/installation
@@ -1304,6 +1456,12 @@ serverTelemetry:
     #  release: prometheus
     selectors: {}
 
+    # -- Port which Prometheus uses when scraping metrics. If empty will use `openbao.scheme` helper for its value
+    port: ""
+
+    # -- scheme to use when Prometheus scrapes metrics. If empty will use `openbao.scheme` helper for its value
+    scheme: ""
+
     # Interval at which Prometheus scrapes metrics
     interval: 30s
 
@@ -1355,6 +1513,10 @@ serverTelemetry:
     # https://grafana.com/grafana/dashboards/23725-openbao
     enabled: false
 
+    # Namespace to deploy the dashboard ConfigMap to.
+    # Defaults to this chart's namespace.
+    namespace: ""
+
     # Add `grafana_dashboard: "1"` default label
     defaultLabel: true
 
@@ -1381,3 +1543,86 @@ extraObjects: []
 #     kind: ConfigMap
 #     metadata:
 #       name: cert-manager-configmap-{{ include "some-other-template" }}
+
+# Snapshot Agent Configuration
+snapshotAgent:
+  # whether or not to enable the snapshot agent cronjob
+  enabled: false
+  # extra Annotations for the job
+  annotations: {}
+  # schedule of the cronjob
+  schedule: "*/15 * * * *"
+  restartPolicy: OnFailure
+  # service account settings for the snapshot agent
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    extraLabels: {}
+  # The image settings for the snapshot agent
+  image:
+    repository: ghcr.io/openbao/openbao-snapshot-agent
+    tag: 0.3.0
+
+  # -- List of extraVolumes made available to the snapshot cronjob container.
+  extraVolumes: []
+  #   - name: openbao-tls
+  #     secret:
+  #       defaultMode: 420
+  #       secretName: openbao-tls
+
+  # -- List of additional volumeMounts for the snapshot cronjob container.
+  extraVolumeMounts: []
+  #   - mountPath: /openbao/tls/ca.crt
+  #     name: openbao-tls
+  #     readOnly: true
+  #     subPath: ca.crt
+
+  # s3CredentialsSecret to use
+  s3CredentialsSecret: "my-s3-credentials"
+
+  # configuration for the snapshot agent
+  config:
+    s3Host: "s3.eu-east-1.amazonaws.com"
+    s3Bucket: "openbao-snapshots"
+    s3Uri: "s3://openbao-snapshots"
+    s3ExpireDays: "14"
+    s3cmdExtraFlag: "-v"
+    baoAuthPath: "kubernetes"
+    baoRole: "snapshot"
+
+  # configuration of the CronJobs resources
+  resources: {}
+
+  # -- Map of extra environment variables to set in the snapshot-agent cronjob
+  extraEnvironmentVars: {}
+    # BAO_CACERT: /openbao/tls/ca.crt
+
+  # --  List of extra environment variables to set in the snapshot-agent cronjob
+  # These variables take value from existing Secret objects.
+  extraSecretEnvironmentVars: []
+    # - envName: AWS_SECRET_ACCESS_KEY
+    #   secretName: openbao
+    #   secretKey: AWS_SECRET_ACCESS_KEY
+
+  # Security context for the pod template and the snapshotAgent container
+  # The default pod securityContext is:
+  #   seccompProfile
+  #     type: RuntimeDefault
+  #   runAsNonRoot: true
+  #   runAsGroup: {{ .Values.snapshotAgent.gid | default 1000 }}
+  #   runAsUser: {{ .Values.snapshotAgent.uid | default 100 }}
+  #   fsGroup: {{ .Values.snapshotAgent.gid | default 1000 }}
+  # and for container is
+  #    allowPrivilegeEscalation: false
+  #    capabilities:
+  #      drop:
+  #        - ALL
+  securityContext:
+    pod: {}
+    container: {}
+
+  # Toleration Settings for snapshot-agent cronjob pod
+  # This should be either a multi-line string or YAML matching the Toleration array
+  # in a PodSpec.
+  tolerations: []
