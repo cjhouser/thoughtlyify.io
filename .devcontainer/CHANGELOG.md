@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 0.15.0
 ### Added
 - `devenv` alias which switches the terminal's kubectl context to the local kind cluster running on the same Podman VM as the devcontainer
+- trixie repositories now have azure-cli
 
 ## 0.14.0
 ### Changed
