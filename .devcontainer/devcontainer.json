@@ -1,6 +1,6 @@
 {
 	"name": "devenv",
-	"image": "devenv:0.14.0",
+	"image": "devenv:0.15.0",
 	"mounts": [
 		"type=volume,source=devvol,destination=/mnt/devvol,ro=false"
 	],

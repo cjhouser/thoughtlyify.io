@@ -1,8 +1,9 @@
 FROM debian:trixie-slim AS build
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update > /dev/null \
-    && apt-get install -y wget > /dev/null \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        gnupg \
+        wget
 
 FROM build as go
 ARG VERSION=1.24.12
@@ -51,36 +52,30 @@ RUN chmod +x linkerd
 
 FROM ghcr.io/opentofu/opentofu:1.10-minimal AS tofu
 
-FROM debian:trixie-slim AS final
+FROM build
 ARG AWSCLI_VERSION=2.23.6
 ARG TARGETARCH
 ARG TARGETOS
 ENV PATH=${PATH}:/usr/local/go/bin
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ack \
-    awscli=${AWSCLI_VERSION}-1 \
-    bash-completion \
-    ca-certificates \
-    curl \
-    dnsutils \
-    git \
-    gnupg \
-    less \
-    locales \
-    openssl \
-    ssh \
-    vim
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ack \
+        awscli=${AWSCLI_VERSION}-1 \
+        azure-cli \
+        bash-completion \
+        curl \
+        dnsutils \
+        git \
+        less \
+        locales \
+        openssl \
+        ssh \
+        vim
 COPY --from=flyctl /tmp/flyctl /usr/local/bin/fly
 COPY --from=go /tmp/go/ /usr/local/go/
 COPY --from=kubectl /tmp/kubectl /usr/local/bin/kubectl
 COPY --from=helm /tmp/helm /usr/local/bin/helm
 COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
 COPY --from=linkerd /tmp/linkerd /usr/local/bin/linkerd
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null
-RUN chmod go+r /etc/apt/keyrings/microsoft.gpg
-RUN echo "Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: bookworm\nComponents: main\nArchitectures: ${TARGETARCH}\nSigned-By: /etc/apt/keyrings/microsoft.gpg" | tee /etc/apt/sources.list.d/azure-cli.sources
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    azure-cli
 RUN sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && locale-gen && update-locale LANG=en_US.UTF-8
 COPY .bashrc /root/.bashrc
