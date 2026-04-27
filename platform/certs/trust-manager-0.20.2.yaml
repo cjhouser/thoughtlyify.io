@@ -1,0 +1,50 @@
+revisionHistoryLimit: 3
+
+namespace: certs
+
+defaultPackage:
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 80m
+      memory: 128Mi
+
+secretTargets:
+  # If set to true, enable writing trust bundles to Kubernetes Secrets as a target.
+  # trust-manager can only write to secrets which are explicitly allowed via either authorizedSecrets or authorizedSecretsAll.
+  # Note that enabling secret targets will grant trust-manager read access to all secrets in the cluster.
+  enabled: false
+  # If set to true, grant read/write permission to all secrets across the cluster. Use with caution!
+  # If set, ignores the authorizedSecrets list.
+  authorizedSecretsAll: false
+  # A list of secret names which trust-manager will be permitted to read and write across all namespaces.
+  # These are the only allowable Secrets that can be used as targets. If the list is empty (and authorizedSecretsAll is false),
+  # trust-manager can't write to secrets and can only read secrets in the trust namespace for use as sources.
+  authorizedSecrets: []
+
+resources:
+  limits:
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+tolerations:
+- key: "dedicated"
+  operator: "Equal"
+  value: "persistence"
+  effect: "NoSchedule"
+
+filterExpiredCertificates:
+  # Whether to filter expired certificates from the trust bundle.
+  enabled: false
+
+app:
+  minTLSVersion: "VersionTLS13"
+
+  # Comma-separated list of cipher suites for the server. If omitted, the default Go cipher suites will be used.
+  cipherSuites: "TLS_AES_128_GCM_SHA256"
+
+  trust:
+    namespace: certs
