@@ -1,0 +1,23 @@
+deployment:
+  envoyGateway:
+    resources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+service:
+  # If set to PreferClose, the Envoy fleet will prioritize connecting to the Envoy Gateway pods that are topologically closest to them.
+  trafficDistribution: PreferClose
+  # -- Service type. Can be set to LoadBalancer with specific IP, e.g.:
+  # type: LoadBalancer
+  # loadBalancerIP: 10.236.90.20
+  type: "LoadBalancer"
+
+config:
+# -- EnvoyGateway configuration. Visit https://gateway.envoyproxy.io/docs/api/extension_types/#envoygateway to view all options.
+  envoyGateway:
+    logging:
+      level:
+        default: error

@@ -1,3 +1,15 @@
+config:
+  apiVersion: controller.config.cert-manager.io/v1alpha1
+  kind: ControllerConfiguration
+  logging:
+    format: json
+    verbosity: 2
+  numberOfConcurrentWorkers: 5
+  enableGatewayAPI: true
+  featureGates:
+    ExperimentalGatewayAPISupport: true
+    LoggingBetaOptions: true
+
 crds:
   enabled: true
 
