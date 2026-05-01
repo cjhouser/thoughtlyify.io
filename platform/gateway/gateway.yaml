@@ -1,0 +1,54 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: internal
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: internal
+  namespace: gateway
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging-shortlived
+    cert-manager.io/common-name: cicd.thoughtlyify.io
+spec:
+  gatewayClassName: internal
+  listeners:
+  - name: https
+    protocol: HTTPS
+    hostname: cicd.thoughtlyify.io
+    port: 443
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            shared-gateway-access: "true"
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: envoy
+  namespace: gateway
+spec:
+  ports:
+  - name: https
+    nodePort: 30443
+    port: 443
+    targetPort: 10443
+  selector:
+    app.kubernetes.io/component: proxy
+    app.kubernetes.io/managed-by: envoy-gateway
+    app.kubernetes.io/name: envoy
+    gateway.envoyproxy.io/owning-gateway-name: internal
+    gateway.envoyproxy.io/owning-gateway-namespace: cicd
+  sessionAffinity: None
+  trafficDistribution: PreferSameZone
+  type: NodePort
