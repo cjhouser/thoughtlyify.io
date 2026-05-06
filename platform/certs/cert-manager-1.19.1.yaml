@@ -1,49 +1,38 @@
-config:
-  apiVersion: controller.config.cert-manager.io/v1alpha1
-  kind: ControllerConfiguration
-  logging:
-    format: json
-    verbosity: 2
-  numberOfConcurrentWorkers: 5
-  enableGatewayAPI: true
-  featureGates:
-    ExperimentalGatewayAPISupport: true
-    LoggingBetaOptions: true
-
-crds:
-  enabled: true
-
 global:
+  logLevel: 2
   leaderElection:
     namespace: certs
-
-webhook:
-  resources:
-    limits:
-      memory: 64Mi
-    requests:
-      cpu: 80m
-      memory: 64Mi
-
-namespace: certs
-
+crds:
+  enabled: true
+  keep: true
+extraArgs:
+- --logging-format=json
 resources:
   limits:
     memory: 64Mi
   requests:
     cpu: 80m
     memory: 64Mi
+prometheus:
+  enabled: false
 
-cainjector:
+webhook:
+  extraArgs:
+  - --logging-format=json
   resources:
     limits:
       memory: 64Mi
     requests:
       cpu: 80m
-      memory: 64Mi
 
-prometheus:
-  enabled: false
+cainjector:
+  extraArgs:
+  - --logging-format=json
+  resources:
+    limits:
+      memory: 64Mi
+    requests:
+      cpu: 80m
 
 startupapicheck:
   resources:
@@ -51,4 +40,3 @@ startupapicheck:
       memory: 64Mi
     requests:
       cpu: 80m
-      memory: 64Mi

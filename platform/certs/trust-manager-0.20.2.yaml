@@ -1,14 +1,11 @@
 revisionHistoryLimit: 3
 
-namespace: certs
-
 defaultPackage:
   resources:
     limits:
-      memory: 128Mi
+      memory: 64Mi
     requests:
       cpu: 80m
-      memory: 128Mi
 
 secretTargets:
   # If set to true, enable writing trust bundles to Kubernetes Secrets as a target.
@@ -25,10 +22,9 @@ secretTargets:
 
 resources:
   limits:
-    memory: 128Mi
+    memory: 64Mi
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 80m
 
 tolerations:
 - key: "dedicated"
@@ -42,9 +38,8 @@ filterExpiredCertificates:
 
 app:
   minTLSVersion: "VersionTLS13"
-
-  # Comma-separated list of cipher suites for the server. If omitted, the default Go cipher suites will be used.
   cipherSuites: "TLS_AES_128_GCM_SHA256"
-
+  logFormat: json
+  logLevel: 2
   trust:
     namespace: certs
